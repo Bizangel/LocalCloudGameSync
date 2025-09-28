@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "LocalCloudGameSync"
+name = "local_cloud_game_sync"
 version = "0.1.0"
