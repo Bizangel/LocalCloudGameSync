@@ -21,6 +21,11 @@ pub fn sync_command(save_key: &String) -> Result<(), String> {
     let _lock = RemoteLock::acquire(&config.ssh_host)
         .map_err(|e| format!("Unable to get remote lock:\n{}", e))?;
 
+    if !_lock.is_acquired() {
+        println!("Unable to obtain remote lock - stopping sync");
+        return Ok(());
+    }
+
     println!("{:#?}", config);
 
     Ok(())
