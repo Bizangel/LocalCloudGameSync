@@ -1,17 +1,49 @@
 use serde::Deserialize;
+use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+use crate::utils::get_steam_common;
+use crate::utils::get_steam_compatdata;
+
 const DATA_DIR_NAME: &str = "local_cloud_game_sync";
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")] // applies to all fields
 pub struct LocalSaveOptions {
-    remoteBackupKey: String,
-    saveFolderPath: String,
-    saveIgnoreGlob: Vec<String>,
+    remote_backup_key: String,
+    save_folder_path: String,
+    save_ignore_glob: Vec<String>,
 }
 
-fn get_sync_configs_path() -> Result<PathBuf, String> {
+fn expand_placeholders(input: &str) -> String {
+    let mut result = input.to_string();
+
+    let placeholders = [
+        ("{{HOME}}", env::var("HOME").unwrap_or_default()),
+        ("{{APPDATA}}", env::var("APPDATA").unwrap_or_default()),
+        (
+            "{{STEAM_COMMON}}",
+            get_steam_common()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
+        ),
+        (
+            "{{STEAM_COMPATDATA}}",
+            get_steam_compatdata()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
+        ),
+    ];
+
+    for (placeholder, value) in placeholders.iter() {
+        result = result.replace(placeholder, value);
+    }
+
+    result
+}
+
+pub fn get_sync_configs_path() -> Result<PathBuf, String> {
     let base_dir = dirs::data_dir().ok_or("Could not determine data directory")?;
     let configs_path = PathBuf::from(base_dir)
         .join(DATA_DIR_NAME)
@@ -19,7 +51,7 @@ fn get_sync_configs_path() -> Result<PathBuf, String> {
     Ok(configs_path)
 }
 
-pub fn init_configs_folder() -> Result<(), String> {
+pub fn init_configs_folder() -> Result<PathBuf, String> {
     let configs_path = get_sync_configs_path()?;
 
     fs::create_dir_all(&configs_path).map_err(|e| {
@@ -29,11 +61,12 @@ pub fn init_configs_folder() -> Result<(), String> {
         )
     })?;
 
-    Ok(())
+    Ok(configs_path)
 }
 
 fn read_config_file(save_key: &str) -> Result<Option<Vec<u8>>, String> {
-    let filepath = get_sync_configs_path()?.join(save_key);
+    let filename = format!("{}.json", save_key);
+    let filepath = get_sync_configs_path()?.join(filename);
     // If file does not exist, just return None
     if !filepath.exists() {
         return Ok(None);
@@ -46,9 +79,27 @@ fn read_config_file(save_key: &str) -> Result<Option<Vec<u8>>, String> {
     Ok(Some(bytes))
 }
 
+fn validate_key(save_key: &str) -> bool {
+    return true;
+}
+
 pub fn get_config(save_key: &str) -> Result<Option<LocalSaveOptions>, String> {
     return match read_config_file(save_key)? {
-        Some(bytes) => serde_json::from_slice(&bytes).map_err(|x| x.to_string()),
+        Some(bytes) => {
+            // 1. Parse config
+            let parsed: LocalSaveOptions = serde_json::from_slice(&bytes)
+                .map_err(|e| format!("Error parsing configuration:\n{}", e))?;
+            // 2. Validate Key
+            if !validate_key(save_key) {
+                return Err(format!("Invalid key given {}", save_key));
+            }
+            // 3. Expand placeholders from function
+            let modified = LocalSaveOptions {
+                save_folder_path: expand_placeholders(&parsed.save_folder_path),
+                ..parsed.clone() // clone the rest of the fields
+            };
+            Ok(Some(modified))
+        }
         None => Ok(None), // config file not found
     };
 }

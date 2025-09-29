@@ -1,8 +1,8 @@
+pub mod commands;
 pub mod local_save_config;
 pub mod remote_lock;
 pub mod ssh_utils;
-pub mod sync_command;
-
+pub mod utils;
 // mod local_save_config;
 
 // pub mod local_save_config;
