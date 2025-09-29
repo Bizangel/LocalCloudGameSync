@@ -80,7 +80,12 @@ fn read_config_file(save_key: &str) -> Result<Option<Vec<u8>>, String> {
 }
 
 fn validate_key(save_key: &str) -> bool {
-    return true;
+    for c in save_key.chars() {
+        if !(c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+            return false;
+        }
+    }
+    !save_key.is_empty()
 }
 
 pub fn get_config(save_key: &str) -> Result<Option<LocalSaveOptions>, String> {
@@ -90,8 +95,11 @@ pub fn get_config(save_key: &str) -> Result<Option<LocalSaveOptions>, String> {
             let parsed: LocalSaveOptions = serde_json::from_slice(&bytes)
                 .map_err(|e| format!("Error parsing configuration:\n{}", e))?;
             // 2. Validate Key
-            if !validate_key(save_key) {
-                return Err(format!("Invalid key given {}", save_key));
+            if !validate_key(&parsed.remote_backup_key) {
+                return Err(format!(
+                    "Invalid JSON configuration - remoteBackupKey given \"{}\" - must only contains [A-Za-z0-9_-]",
+                    parsed.remote_backup_key
+                ));
             }
             // 3. Expand placeholders from function
             let modified = LocalSaveOptions {
