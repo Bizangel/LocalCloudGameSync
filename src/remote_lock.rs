@@ -1,4 +1,3 @@
-use std::io;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::ssh_utils::ssh_command;
@@ -14,7 +13,7 @@ pub struct RemoteLock<'a> {
 
 impl<'a> RemoteLock<'a> {
     /// Attempt to acquire the lock
-    pub fn acquire(host: &'a str) -> io::Result<Self> {
+    pub fn acquire(host: &'a str) -> Result<Self, String> {
         // Check if lock exists
         let test_lock_cmd = format!("[ -d {} ]", LOCK_FOLDER);
         let lock_exists = ssh_command(host, &test_lock_cmd)?.code.success();
@@ -53,6 +52,8 @@ impl<'a> RemoteLock<'a> {
                 .as_secs();
             let write_ts_cmd = format!("echo {} > {}/timestamp", timestamp, LOCK_FOLDER);
             ssh_command(host, &write_ts_cmd)?;
+
+            println!("Remote Lock acquired: {}", LOCK_FOLDER);
             Ok(Self {
                 host,
                 acquired: true,
@@ -79,7 +80,7 @@ impl<'a> Drop for RemoteLock<'a> {
             let rmdir_cmd = format!("rm {}/timestamp && rmdir {}", LOCK_FOLDER, LOCK_FOLDER);
             match ssh_command(self.host, &rmdir_cmd) {
                 Ok(status) if status.code.success() => {
-                    println!("Lock released: {}", LOCK_FOLDER);
+                    println!("Remote Lock released: {}", LOCK_FOLDER);
                 }
                 Ok(status) => {
                     eprintln!("Failed to remove lock, exit code: {:?}", status.code.code());

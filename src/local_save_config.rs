@@ -11,9 +11,10 @@ const DATA_DIR_NAME: &str = "local_cloud_game_sync";
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")] // applies to all fields
 pub struct LocalSaveOptions {
-    remote_backup_key: String,
-    save_folder_path: String,
-    save_ignore_glob: Vec<String>,
+    pub ssh_host: String,
+    pub remote_backup_key: String,
+    pub save_folder_path: String,
+    pub save_ignore_glob: Vec<String>,
 }
 
 fn expand_placeholders(input: &str) -> String {
