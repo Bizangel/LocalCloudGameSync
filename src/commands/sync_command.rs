@@ -1,4 +1,4 @@
-use crate::{local_save_config::get_config, remote_lock::RemoteLock};
+use crate::{local_save_config::get_config, remote_lock::RemoteLock, tree_hash};
 use std::path;
 
 pub fn sync_command(save_key: &String) -> Result<(), String> {
@@ -8,8 +8,8 @@ pub fn sync_command(save_key: &String) -> Result<(), String> {
         return Ok(());
     };
 
-    let cfg = path::Path::new(&config.save_folder_path);
-    if !cfg.exists() {
+    let save_folder_path = path::Path::new(&config.save_folder_path);
+    if !save_folder_path.exists() {
         println!(
             "Given save folder path {} does not exist - unable to sync",
             config.save_folder_path
@@ -17,16 +17,20 @@ pub fn sync_command(save_key: &String) -> Result<(), String> {
         return Ok(());
     }
 
+    // 2. Hash folder
+
+    let res = tree_hash::tree_folder_hash(save_folder_path)?;
+    println!("checksum {}", res);
     // 1. Acquire remote lock.
-    let _lock = RemoteLock::acquire(&config.ssh_host)
-        .map_err(|e| format!("Unable to get remote lock:\n{}", e))?;
+    // let _lock = RemoteLock::acquire(&config.ssh_host)
+    //     .map_err(|e| format!("Unable to get remote lock:\n{}", e))?;
 
-    if !_lock.is_acquired() {
-        println!("Unable to obtain remote lock - stopping sync");
-        return Ok(());
-    }
+    // if !_lock.is_acquired() {
+    //     println!("Unable to obtain remote lock - stopping sync");
+    //     return Ok(());
+    // }
 
-    println!("{:#?}", config);
+    // println!("{:#?}", config);
 
     Ok(())
 }
