@@ -1,6 +1,6 @@
 use globset::{Glob, GlobSetBuilder};
 
-use crate::{local_save_config::get_config, remote_lock::RemoteLock, tree_hash};
+use crate::{local_save_config::get_config, remote_lock::RemoteLock, tree_utils};
 use std::path;
 
 pub fn sync_command(save_key: &String) -> Result<(), String> {
@@ -29,8 +29,12 @@ pub fn sync_command(save_key: &String) -> Result<(), String> {
         .build()
         .map_err(|e| format!("Unable to build globset\n{}", e))?;
 
-    let res = tree_hash::tree_folder_hash(save_folder_path, &ignore_globset)?;
+    let res = tree_utils::tree_folder_hash(save_folder_path, &ignore_globset)?;
     println!("checksum {}", res);
+
+    // copy temp folder
+    let _ = tree_utils::tree_folder_temp_copy(save_folder_path, &ignore_globset)?;
+
     // 1. Acquire remote lock.
     // let _lock = RemoteLock::acquire(&config.ssh_host)
     //     .map_err(|e| format!("Unable to get remote lock:\n{}", e))?;
