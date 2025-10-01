@@ -162,10 +162,10 @@ pub fn get_global_config() -> Result<Option<GlobalSaveOptions>, String> {
             let parsed: GlobalSaveOptions = serde_json::from_slice(&bytes)
                 .map_err(|e| format!("Error parsing configuration:\n{}", e))?;
             // 2. Validate Key
-            if !parsed.ssh_host.is_empty() {
+            if parsed.ssh_host.is_empty() {
                 return Err(format!("sshHost key must not be empty in global config!"));
             }
-            if !parsed.remote_save_folder_path.is_empty() {
+            if parsed.remote_save_folder_path.is_empty() {
                 return Err(format!(
                     "remote_save_folder_path key must not be empty in global config!"
                 ));
