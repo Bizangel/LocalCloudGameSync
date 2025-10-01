@@ -1,8 +1,17 @@
-use crate::local_save_config::get_config;
+use crate::local_save_config::{GlobalSaveOptions, get_config, get_global_config};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use std::path::{Path, PathBuf};
 
-pub fn validate_and_process_sync_config(save_key: &str) -> Result<(PathBuf, GlobSet), String> {
+pub fn validate_and_process_sync_config(
+    save_key: &str,
+) -> Result<(GlobalSaveOptions, PathBuf, GlobSet), String> {
+    let globalconfig = get_global_config()?;
+    let Some(globalconfig) = globalconfig else {
+        return Err(format!(
+            "Global config not found! Please run init-config command first."
+        ));
+    };
+
     let config = get_config(save_key)?;
     let Some(config) = config else {
         return Err(format!("Configuration not found for key {}", save_key));
@@ -26,5 +35,5 @@ pub fn validate_and_process_sync_config(save_key: &str) -> Result<(PathBuf, Glob
         .build()
         .map_err(|e| format!("Unable to build globset\n{}", e))?;
 
-    return Ok((save_folder_path.to_owned(), ignore_globset));
+    return Ok((globalconfig, save_folder_path.to_owned(), ignore_globset));
 }

@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -7,11 +7,18 @@ use crate::utils::get_steam_common;
 use crate::utils::get_steam_compatdata;
 
 const DATA_DIR_NAME: &str = "local_cloud_game_sync";
+const GLOBAL_SYNC_CONFIG_NAME: &str = "global_sync_config.json";
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GlobalSaveOptions {
+    pub ssh_host: String,
+    pub remote_save_folder_path: String,
+}
 
 #[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")] // applies to all fields
+#[serde(rename_all = "camelCase")]
 pub struct LocalSaveOptions {
-    pub ssh_host: String,
     pub remote_backup_key: String,
     pub save_folder_path: String,
     pub save_ignore_glob: Vec<String>,
@@ -52,6 +59,14 @@ pub fn get_sync_configs_path() -> Result<PathBuf, String> {
     Ok(configs_path)
 }
 
+pub fn get_global_sync_config_path() -> Result<PathBuf, String> {
+    let base_dir = dirs::data_dir().ok_or("Could not determine data directory")?;
+    let configs_path = PathBuf::from(base_dir)
+        .join(DATA_DIR_NAME)
+        .join(GLOBAL_SYNC_CONFIG_NAME);
+    Ok(configs_path)
+}
+
 pub fn init_configs_folder() -> Result<PathBuf, String> {
     let configs_path = get_sync_configs_path()?;
 
@@ -62,12 +77,39 @@ pub fn init_configs_folder() -> Result<PathBuf, String> {
         )
     })?;
 
+    // create global config
+    let global_sync_config_path = get_global_sync_config_path()?;
+    let placeholder_global_options = GlobalSaveOptions {
+        ssh_host: String::from(""),
+        remote_save_folder_path: String::from(""),
+    };
+    fs::write(
+        global_sync_config_path,
+        serde_json::to_string_pretty(&placeholder_global_options)
+            .map_err(|e| format!("Error initializing\n{}", e))?,
+    )
+    .map_err(|e| format!("Unable to initialize global config \n{e}"))?;
+
     Ok(configs_path)
 }
 
 fn read_config_file(save_key: &str) -> Result<Option<Vec<u8>>, String> {
     let filename = format!("{}.json", save_key);
     let filepath = get_sync_configs_path()?.join(filename);
+    // If file does not exist, just return None
+    if !filepath.exists() {
+        return Ok(None);
+    }
+
+    // Read file into memory
+    let bytes =
+        fs::read(&filepath).map_err(|e| format!("Could not read file {:?}: {}", filepath, e))?;
+
+    Ok(Some(bytes))
+}
+
+pub fn read_global_config_file() -> Result<Option<Vec<u8>>, String> {
+    let filepath = get_global_sync_config_path()?;
     // If file does not exist, just return None
     if !filepath.exists() {
         return Ok(None);
@@ -110,5 +152,26 @@ pub fn get_config(save_key: &str) -> Result<Option<LocalSaveOptions>, String> {
             Ok(Some(modified))
         }
         None => Ok(None), // config file not found
+    };
+}
+
+pub fn get_global_config() -> Result<Option<GlobalSaveOptions>, String> {
+    return match read_global_config_file()? {
+        Some(bytes) => {
+            // 1. Parse config
+            let parsed: GlobalSaveOptions = serde_json::from_slice(&bytes)
+                .map_err(|e| format!("Error parsing configuration:\n{}", e))?;
+            // 2. Validate Key
+            if !parsed.ssh_host.is_empty() {
+                return Err(format!("sshHost key must not be empty in global config!"));
+            }
+            if !parsed.remote_save_folder_path.is_empty() {
+                return Err(format!(
+                    "remote_save_folder_path key must not be empty in global config!"
+                ));
+            }
+            Ok(Some(parsed))
+        }
+        None => Ok(None),
     };
 }
