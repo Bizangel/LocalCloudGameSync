@@ -109,7 +109,7 @@ fn get_tmp_sync_directory() -> PathBuf {
 }
 
 pub struct UploadTempFolder {
-    path: PathBuf,
+    pub path: PathBuf,
 }
 
 impl Drop for UploadTempFolder {

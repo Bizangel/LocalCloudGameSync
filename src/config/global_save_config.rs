@@ -32,6 +32,10 @@ impl GlobalSaveOptionsJson {
                 "remote_save_folder_path key must not be empty in global config!"
             ));
         }
+        if !parsed.remote_save_folder_path.starts_with("/") {
+            return Err(format!("remote_save_folder_path must be absolute path!"));
+        }
+
         Ok(Some(parsed))
     }
 }

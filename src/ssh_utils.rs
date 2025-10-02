@@ -1,4 +1,7 @@
-use std::process::{Command, ExitStatus};
+use std::{
+    path::Path,
+    process::{Command, ExitStatus},
+};
 
 /// Result of an SSH command
 #[derive(Debug)]
@@ -68,4 +71,32 @@ pub fn ssh_cat_head(
             String::from_utf8_lossy(&res.stderr)
         )),
     };
+}
+
+pub fn scp_folder(
+    ssh_host: &str,
+    src_folder: &Path,
+    dst_folder: &str,
+) -> Result<SshOutput, String> {
+    let scp_target = format!("{}:{}", ssh_host, dst_folder);
+    let scp_source = src_folder
+        .to_str()
+        .ok_or_else(|| String::from("Invalid source folder for scp"))?;
+
+    println!("{:#?}", ["scp", "-r", scp_source, &scp_target]);
+    let output = Command::new("scp")
+        .args(["-r", scp_source, &scp_target])
+        .output()
+        .map_err(|e| e.to_string())?; // capture stdout and stderr
+
+    if output.status.code() == Some(255) {
+        let error = String::from_utf8(output.stderr).unwrap_or_default();
+        return Err(format!("SSH Connection Error:\n{}", error));
+    }
+
+    Ok(SshOutput {
+        code: output.status,
+        stdout: output.stdout,
+        stderr: output.stderr,
+    })
 }
