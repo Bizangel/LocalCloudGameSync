@@ -1,4 +1,3 @@
-mod common;
 mod init_command;
 mod open_config_folder_command;
 mod push_command;
