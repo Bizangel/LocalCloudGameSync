@@ -108,8 +108,21 @@ fn get_tmp_sync_directory() -> PathBuf {
     return env::temp_dir().join("local_cloud_game_sync_tmp");
 }
 
+pub struct UploadTempFolder {
+    path: PathBuf,
+}
+
+impl Drop for UploadTempFolder {
+    fn drop(&mut self) {
+        let _ = delete_tmp_sync_directory();
+    }
+}
+
 // TODO: Make multi-threaded for faster checksumming - usually fine for save folders
-pub fn tree_folder_temp_copy(path: &Path, ignore_globset: &GlobSet) -> Result<(), String> {
+pub fn tree_folder_temp_copy(
+    path: &Path,
+    ignore_globset: &GlobSet,
+) -> Result<UploadTempFolder, String> {
     let target = get_tmp_sync_directory();
     delete_tmp_sync_directory()?;
 
@@ -131,7 +144,7 @@ pub fn tree_folder_temp_copy(path: &Path, ignore_globset: &GlobSet) -> Result<()
         Ok(())
     })?;
 
-    Ok(())
+    Ok(UploadTempFolder { path: target })
 }
 
 pub fn delete_tmp_sync_directory() -> Result<(), String> {

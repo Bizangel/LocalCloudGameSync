@@ -41,3 +41,31 @@ pub fn ssh_command(host: &str, cmd: &str) -> Result<SshOutput, String> {
         stderr: output.stderr,
     })
 }
+
+pub fn ssh_cat_head(
+    ssh_host: &str,
+    remote_save_folder_path: &str,
+    remote_backup_key: &str,
+) -> Result<Option<String>, String> {
+    let exists_command = format!(
+        "cd {dir} 2>/dev/null || exit 100; \
+        [ -r .cloudmeta/{key}.HEAD ] && cat .cloudmeta/{key}.HEAD && exit 0; \
+        [ -e .cloudmeta/{key}.HEAD ] && exit 1; \
+        exit 2",
+        dir = &remote_save_folder_path,
+        key = &remote_backup_key
+    );
+
+    let res = ssh_command(&ssh_host, &exists_command)?;
+    return match res.code.code() {
+        Some(0) => String::from_utf8(res.stdout)
+            .map(|x| Some(String::from(x.trim())))
+            .map_err(|e| format!("Unable to read file HEAD {}", e)),
+        Some(1) => Err(String::from("Remote HEAD file is not readable")),
+        Some(2) => Ok(None),
+        Some(_) | None => Err(format!(
+            "Error ocurred during checking SSH remote HEAD - Exit Code: \n{}",
+            String::from_utf8_lossy(&res.stderr)
+        )),
+    };
+}
