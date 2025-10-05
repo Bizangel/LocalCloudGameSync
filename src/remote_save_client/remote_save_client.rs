@@ -22,6 +22,11 @@ pub trait RemoteSaveClient<'c> {
     /// Pushes to the remote save repository - overwriting the destination and updating the remote HEAD.
     /// This function should implement a mirror functionality - deleting any existing files present in dst but not in src.
     fn push(&self, path: &UploadTempFolder, new_head_hash: &str) -> Result<(), String>;
+
+    /// Pulls from the remote save repository - overwriting the local folder.
+    /// Does NOT update local HEAD.
+    /// This function should implement a mirror functionality - deleting any existing files present in dst but not in src.
+    fn pull(&self) -> Result<(), String>;
 }
 
 pub fn get_default_remote_save_client<'c>(

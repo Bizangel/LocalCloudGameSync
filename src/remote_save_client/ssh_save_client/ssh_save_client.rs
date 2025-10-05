@@ -127,4 +127,8 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
 
         Ok(())
     }
+
+    fn pull(&self) -> Result<(), String> {
+        todo!()
+    }
 }

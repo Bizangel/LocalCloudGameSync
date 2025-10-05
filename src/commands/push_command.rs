@@ -47,7 +47,7 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     client.push(&temp_folder, &local_hash)?;
     println!("Pushed to remote new HEAD {local_hash} successfully!");
 
-    // 5. Update last uploaded local head
+    // 5. Update local head
     write_local_head(&config.remote_sync_key, &local_hash)?;
     println!("Successfully updated local head");
 

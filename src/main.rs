@@ -17,7 +17,12 @@ struct LocalGameSyncCli {
 enum Commands {
     /// Perform the bi-directional sync process following the given game key settings.
     Sync { save_key: String },
-    /// Perform uni-directional sync process for the given game key. Uploads the current local save overwriting the remote.
+
+    /// Perform uni-directional pull process for the given game key. Pulls the remote version overwriting the local folder.
+    /// Pull can be a destructive action - hence it is recommended to ensure that your current version is already on the cloud.
+    Pull { save_key: String },
+
+    /// Perform uni-directional push process for the given game key. Uploads the current local save overwriting the remote.
     /// Because push can be a destructive action - a snapshot is always triggered on the remote before overwriting.
     Push { save_key: String },
     /// Shows what CLI would do without actually performing the sync for the given game key settings.
@@ -34,6 +39,7 @@ fn main() {
     let command_res: Result<(), String> = match args.command {
         Commands::Sync { save_key } => commands::sync_command(&save_key),
         Commands::Push { save_key } => commands::push_command(&save_key),
+        Commands::Pull { save_key } => commands::pull_command(&save_key),
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfigFolder => commands::open_config_folder_command(),
         Commands::Dryrun => Err(String::from("Dryrun isn't implemented yet!")),
