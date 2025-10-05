@@ -1,3 +1,5 @@
+use std::process::ExitCode;
+
 use clap::{Parser, Subcommand};
 use local_cloud_game_sync::commands;
 
@@ -17,6 +19,10 @@ struct LocalGameSyncCli {
 enum Commands {
     /// Perform the bi-directional sync process following the given game key settings.
     Sync { save_key: String },
+
+    /// Perform the remote check to see what sync actions need to be performed.
+    /// Determines whether local be fast-forwarded - or remote can be fast-forwarded - or whether there's a conflict that requires manual approval.
+    CheckSync { save_key: String },
 
     /// Perform uni-directional pull process for the given game key. Pulls the remote version overwriting the local folder.
     /// Pull can be a destructive action - hence it is recommended to ensure that your current version is already on the cloud.
@@ -47,10 +53,11 @@ enum Commands {
     InitConfig,
 }
 
-fn main() {
+fn main() -> ExitCode {
     let args = LocalGameSyncCli::parse();
 
     let command_res: Result<(), String> = match args.command {
+        Commands::CheckSync { save_key } => commands::check_sync_command(&save_key),
         Commands::Sync { save_key } => commands::sync_command(&save_key),
         Commands::Push { save_key, if_head } => {
             commands::push_command(&save_key, if_head.as_deref())
@@ -65,5 +72,8 @@ fn main() {
 
     if let Err(e) = command_res {
         eprintln!("{RED_ANSI_ESCAPE}{e}{ANSI_RESET_ESCAPE}");
+        return ExitCode::FAILURE;
     }
+
+    return ExitCode::SUCCESS;
 }
