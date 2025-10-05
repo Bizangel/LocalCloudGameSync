@@ -22,7 +22,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         [ -e {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && exit 1; \
         exit 2",
             dir = self.config.remote_save_folder_path,
-            key = self.config.remote_backup_key
+            key = self.config.remote_sync_key
         );
 
         let res = ssh_command(&self.config.ssh_host, self.config.ssh_port, &exists_command)?;
@@ -51,7 +51,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER_NAME}/restic_password || exit 98; }}; \
         restic -r Snapshots/{key}/ -p {REMOTE_HEAD_FOLDER_NAME}/restic_password backup {REMOTE_SAVES_FOLDER_NAME}/{key}",
             dir = self.config.remote_save_folder_path,
-            key = self.config.remote_backup_key
+            key = self.config.remote_sync_key
         );
 
         let res = ssh_command(&self.config.ssh_host, self.config.ssh_port, &exists_command)?;
@@ -76,7 +76,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &format!(
                 "rm -rf {base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
                 base = &self.config.remote_save_folder_path,
-                key = &self.config.remote_backup_key
+                key = &self.config.remote_sync_key
             ),
         )?;
 
@@ -95,7 +95,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &format!(
                 "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
                 base = &self.config.remote_save_folder_path,
-                key = &self.config.remote_backup_key
+                key = &self.config.remote_sync_key
             ),
         )?;
 
@@ -113,7 +113,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &format!(
                 "echo \"{new_head}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
                 base = &self.config.remote_save_folder_path,
-                key = &self.config.remote_backup_key
+                key = &self.config.remote_sync_key
             ),
         )?;
 

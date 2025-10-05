@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 pub struct RuntimeSyncConfig {
     pub ssh_host: String,
     pub ssh_port: u32,
-    pub remote_backup_key: String,
+    pub remote_sync_key: String,
 
     /// The path to where to store the remote saves. Must be absolute.
     pub remote_save_folder_path: String,
@@ -54,7 +54,7 @@ pub fn load_and_validate_config(save_config_key: &str) -> Result<RuntimeSyncConf
         ssh_host: globalconfig.ssh_host,
         ssh_port: globalconfig.ssh_port.unwrap_or(22),
         remote_save_folder_path: globalconfig.remote_save_folder_path,
-        remote_backup_key: config.remote_backup_key,
+        remote_sync_key: config.remote_sync_key,
         local_save_folder: save_folder_path.to_owned(),
         ignore_globset: ignore_globset,
     });

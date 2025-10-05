@@ -11,8 +11,8 @@ pub trait RemoteSaveClient<'c> {
     /// Gets the current remote HEAD. This is best - effort so be wary of race-conditions.
     fn get_remote_head(&self) -> Result<Option<String>, String>;
 
-    /// Triggers a remote backup process for the current save key configuration.
-    /// Should only be triggered if there is something to backup. (If HEAD exists)
+    /// Triggers a remote snapshot process for the current save key configuration.
+    /// Should only be triggered if there is something to snapshot. (If HEAD exists)
     fn remote_snapshot(&self) -> Result<(), String>;
 
     /// Acquires a remote lock.

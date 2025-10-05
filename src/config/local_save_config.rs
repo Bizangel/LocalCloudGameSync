@@ -14,7 +14,7 @@ fn validate_remote_key(save_key: &str) -> bool {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalSaveOptionsJson {
-    pub remote_backup_key: String,
+    pub remote_sync_key: String,
     pub save_folder_path: String,
     pub save_ignore_glob: Vec<String>,
 }
@@ -36,10 +36,10 @@ impl LocalSaveOptionsJson {
         let parsed: LocalSaveOptionsJson = serde_json::from_slice(&bytes)
             .map_err(|e| format!("Error parsing configuration:\n{}", e))?;
         // 2. Validate Key
-        if !validate_remote_key(&parsed.remote_backup_key) {
+        if !validate_remote_key(&parsed.remote_sync_key) {
             return Err(format!(
-                "Invalid JSON configuration - remoteBackupKey given \"{}\" - must only contains [A-Za-z0-9_-]",
-                parsed.remote_backup_key
+                "Invalid JSON configuration - remoteSyncKey given \"{}\" - must only contains [A-Za-z0-9_-]",
+                parsed.remote_sync_key
             ));
         }
         if [
@@ -47,10 +47,10 @@ impl LocalSaveOptionsJson {
             REMOTE_SAVES_FOLDER_NAME.to_lowercase(),
             REMOTE_HEAD_FOLDER_NAME.to_lowercase(),
         ]
-        .contains(&parsed.remote_backup_key.to_lowercase())
+        .contains(&parsed.remote_sync_key.to_lowercase())
         {
             return Err(format!(
-                "remoteBackupKey cannot be {REMOTE_SNAPSHOT_FOLDER_NAME} or {REMOTE_SAVES_FOLDER_NAME} or {REMOTE_HEAD_FOLDER_NAME}",
+                "remoteSyncKey cannot be {REMOTE_SNAPSHOT_FOLDER_NAME} or {REMOTE_SAVES_FOLDER_NAME} or {REMOTE_HEAD_FOLDER_NAME}",
             ));
         }
 

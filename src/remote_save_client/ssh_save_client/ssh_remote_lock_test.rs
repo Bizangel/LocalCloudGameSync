@@ -13,7 +13,7 @@ fn get_test_config() -> RuntimeSyncConfig {
     return RuntimeSyncConfig {
         ssh_host: TEST_SSH_HOST.to_string(),
         ssh_port: TEST_SSH_PORT,
-        remote_backup_key: "test-key".to_string(),
+        remote_sync_key: "test-key".to_string(),
         remote_save_folder_path: "/tmp/test-save".to_string(),
         local_save_folder: Path::new("").to_path_buf(),
         ignore_globset: GlobSet::empty(),

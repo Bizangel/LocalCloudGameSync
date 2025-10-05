@@ -28,7 +28,7 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     if remote_head.is_some() {
         println!(
             "Found existing data for {} in remote - Triggering remote Snapshot",
-            config.remote_backup_key
+            config.remote_sync_key
         );
         client.remote_snapshot()?;
         println!(
