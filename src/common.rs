@@ -71,13 +71,13 @@ mod tests {
                 timestamp: 12000,
             }
             .serialize(),
-            "abcdef|12000"
+            "abcdef,12000"
         )
     }
 
     #[test]
     fn deserialization() {
-        let rev = Revision::deserialize("abcdef|12000").expect("Safe serialize");
+        let rev = Revision::deserialize("abcdef,12000").expect("Safe serialize");
         assert_eq!(rev.hash, "abcdef");
         assert_eq!(rev.timestamp, 12000);
     }

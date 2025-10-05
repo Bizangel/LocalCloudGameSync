@@ -28,7 +28,7 @@ struct SyncStatusCheckInput<'a> {
     remote_head: Option<&'a str>,
 }
 
-pub fn check_sync_command(save_config_key: &String) -> Result<(), String> {
+pub fn check_sync_command(save_config_key: &String, short_flag: bool) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
     let client = get_default_remote_save_client(&config);
     let local_head = local_head::read_local_head(&config.remote_sync_key)?;
@@ -41,6 +41,11 @@ pub fn check_sync_command(save_config_key: &String) -> Result<(), String> {
         remote_head: remote_head.as_ref().map(|h| h.hash.as_str()),
     });
 
+    if short_flag {
+        println!("{}", check_res.as_str());
+        return Ok(());
+    }
+
     let local_head_display = local_head
         .as_ref()
         .map(|x| x.to_string())
@@ -50,6 +55,7 @@ pub fn check_sync_command(save_config_key: &String) -> Result<(), String> {
         .as_ref()
         .map(|x| x.to_string())
         .unwrap_or_default();
+
     match check_res {
         CheckSyncResult::UpToDate => {
             println!("Already up to date! Current revision {current_head}")
