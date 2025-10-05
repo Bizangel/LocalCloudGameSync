@@ -1,5 +1,5 @@
 use std::{
-    path::Path,
+    path::{MAIN_SEPARATOR_STR, Path},
     process::{Command, ExitStatus},
 };
 
@@ -64,7 +64,7 @@ pub fn ssh_command(host: &str, port: u32, cmd: &str) -> Result<SshOutput, String
     })
 }
 
-pub fn scp_folder(
+pub fn scp_to_remote(
     ssh_host: &str,
     scp_port: u32,
     src_folder: &Path,
@@ -76,6 +76,38 @@ pub fn scp_folder(
         .ok_or_else(|| String::from("Invalid source folder for scp"))?;
 
     let args = ["-P", &scp_port.to_string(), "-r", scp_source, &scp_target];
+    println!("Executing: scp {}", args.join(" "));
+    let output = Command::new("scp")
+        .args(args)
+        .output()
+        .map_err(|e| e.to_string())?; // capture stdout and stderr
+
+    if output.status.code() == Some(255) {
+        let error = String::from_utf8(output.stderr).unwrap_or_default();
+        return Err(format!("SSH Connection Error:\n{}", error));
+    }
+
+    Ok(SshOutput {
+        code: output.status,
+        stdout: output.stdout,
+        stderr: output.stderr,
+    })
+}
+
+pub fn scp_from_remote(
+    ssh_host: &str,
+    scp_port: u32,
+    src_folder: &str,
+    dst_folder: &Path,
+) -> Result<SshOutput, String> {
+    let scp_source = format!("{}:{}", ssh_host, src_folder);
+    let scp_target = dst_folder
+        .to_str()
+        .ok_or_else(|| String::from("Invalid destinations folder for scp"))?;
+    let scp_target = format!("{}{}.", scp_target.to_owned(), MAIN_SEPARATOR_STR); // add separator and dot at end - for ensuring that folder contents are copied
+
+    let args = ["-P", &scp_port.to_string(), "-r", &scp_source, &scp_target];
+    println!("Executing: scp {}", args.join(" "));
     let output = Command::new("scp")
         .args(args)
         .output()

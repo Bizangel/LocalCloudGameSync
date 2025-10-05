@@ -25,7 +25,7 @@ pub trait RemoteSaveClient<'c> {
 
     /// Pulls from the remote save repository - overwriting the local folder.
     /// Does NOT update local HEAD.
-    /// This function should implement a mirror functionality - deleting any existing files present in dst but not in src.
+    /// This function should NOT implement a mirror functionality - existing files present in dst should be kept regardless.
     fn pull(&self) -> Result<(), String>;
 }
 

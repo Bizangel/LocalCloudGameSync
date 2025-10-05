@@ -3,7 +3,9 @@ use crate::config::config_commons::{REMOTE_HEAD_FOLDER_NAME, REMOTE_SAVES_FOLDER
 use crate::remote_save_client::RemoteSaveClient;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_remote_lock::SshRemoteLock;
-use crate::remote_save_client::ssh_save_client::ssh_utils::{scp_folder, ssh_command};
+use crate::remote_save_client::ssh_save_client::ssh_utils::{
+    scp_from_remote, scp_to_remote, ssh_command,
+};
 use crate::tree_utils::UploadTempFolder;
 
 pub struct SshSaveClient<'c> {
@@ -88,7 +90,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             ));
         }
 
-        let scp_result = scp_folder(
+        let scp_result = scp_to_remote(
             &self.config.ssh_host,
             self.config.ssh_port,
             &src_path.path,
@@ -129,6 +131,25 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
     }
 
     fn pull(&self) -> Result<(), String> {
-        todo!()
+        let scp_result = scp_from_remote(
+            &self.config.ssh_host,
+            self.config.ssh_port,
+            &format!(
+                "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}/.", // use this syntax to ensure full copy
+                base = &self.config.remote_save_folder_path,
+                key = &self.config.remote_sync_key
+            ),
+            &self.config.local_save_folder,
+        )?;
+
+        if !scp_result.code.success() {
+            return Err(format!(
+                "Error ocurred during during SCP - Exit Code:{}\n{}",
+                scp_result.code_display(),
+                scp_result.output_lossy()
+            ));
+        }
+
+        Ok(())
     }
 }
