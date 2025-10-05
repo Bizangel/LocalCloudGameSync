@@ -3,15 +3,12 @@ use std::{
     process::{Command, ExitStatus},
 };
 
-use crate::config::config_commons::REMOTE_HEAD_FOLDER;
-
 /// Result of an SSH command
 #[derive(Debug)]
 pub struct SshOutput {
     pub code: ExitStatus,
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
-    pub input_command: String,
 }
 
 impl SshOutput {
@@ -31,8 +28,9 @@ impl SshOutput {
         );
     }
 
+    #[cfg(debug_assertions)]
+    #[allow(dead_code)]
     pub fn print(&self) {
-        println!("Input Command: {}", self.input_command);
         println!("Exit Code: {}", self.code);
         println!(
             "Stdout: {}",
@@ -63,37 +61,7 @@ pub fn ssh_command(host: &str, cmd: &str) -> Result<SshOutput, String> {
         code: output.status,
         stdout: output.stdout,
         stderr: output.stderr,
-        input_command: cmd.to_string(),
     })
-}
-
-pub fn ssh_restic_backup(
-    ssh_host: &str,
-    remote_save_folder_path: &str,
-    remote_backup_key: &str,
-) -> Result<(), String> {
-    let exists_command = format!(
-        "cd {dir} 2>/dev/null || exit 100; \
-        [ ! -r {REMOTE_HEAD_FOLDER}/restic_password ] && exit 99; \
-        [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER}/restic_password || exit 98; }}; \
-        restic -r Snapshots/test-backup/ -p {REMOTE_HEAD_FOLDER}/restic_password backup RemoteSaves/{key}",
-        dir = &remote_save_folder_path,
-        key = &remote_backup_key
-    );
-
-    let res = ssh_command(&ssh_host, &exists_command)?;
-
-    return match res.code.code() {
-        Some(0) => Ok(()),
-        Some(99) => Err(format!(
-            "{REMOTE_HEAD_FOLDER}/restic_password does not exist or is unreadable!",
-        )),
-        Some(_) | None => Err(format!(
-            "Error ocurred during SSH restic backup calls - Exit Code:{}\n{}",
-            res.code_display(),
-            res.output_lossy()
-        )),
-    };
 }
 
 pub fn scp_folder(
@@ -121,6 +89,5 @@ pub fn scp_folder(
         code: output.status,
         stdout: output.stdout,
         stderr: output.stderr,
-        input_command: format!("scp {}", &args.join(" ")),
     })
 }

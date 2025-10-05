@@ -5,7 +5,7 @@ use crate::config::config_commons::{REMOTE_HEAD_FOLDER, REMOTE_SAVES_FOLDER_NAME
 use crate::remote_save_client::RemoteSaveClient;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_remote_lock::SshRemoteLock;
-use crate::ssh_utils::{scp_folder, ssh_command};
+use crate::remote_save_client::ssh_save_client::ssh_utils::{scp_folder, ssh_command};
 
 pub struct SshSaveClient<'c> {
     config: &'c RuntimeSyncConfig,
@@ -46,7 +46,28 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
     }
 
     fn remote_backup(&self) -> Result<(), String> {
-        todo!()
+        let exists_command = format!(
+            "cd {dir} 2>/dev/null || exit 100; \
+        [ ! -r {REMOTE_HEAD_FOLDER}/restic_password ] && exit 99; \
+        [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER}/restic_password || exit 98; }}; \
+        restic -r Snapshots/test-backup/ -p {REMOTE_HEAD_FOLDER}/restic_password backup RemoteSaves/{key}",
+            dir = self.config.remote_save_folder_path,
+            key = self.config.remote_backup_key
+        );
+
+        let res = ssh_command(&self.config.ssh_host, &exists_command)?;
+
+        return match res.code.code() {
+            Some(0) => Ok(()),
+            Some(99) => Err(format!(
+                "{REMOTE_HEAD_FOLDER}/restic_password does not exist or is unreadable!",
+            )),
+            Some(_) | None => Err(format!(
+                "Error ocurred during SSH restic backup calls - Exit Code:{}\n{}",
+                res.code_display(),
+                res.output_lossy()
+            )),
+        };
     }
 
     fn push(&self, src_path: &Path) -> Result<(), String> {

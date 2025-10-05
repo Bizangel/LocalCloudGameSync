@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::config::RuntimeSyncConfig;
 use crate::remote_save_client::remote_lock::RemoteLock;
-use crate::ssh_utils::ssh_command;
+use crate::remote_save_client::ssh_save_client::ssh_utils::ssh_command;
 
 pub const LOCK_FOLDER: &str = "/tmp/local_cloud_game_sync.lock";
 pub const STALE_TIMEOUT_SECS: u64 = 300; // 5 mins

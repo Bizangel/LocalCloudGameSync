@@ -18,19 +18,11 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     let _head = client.get_remote_head()?;
 
     // // 4. Perform remote backup
-    // // Perform snapshot of existing save remotely
-    // client.remote_backup();
-
-    // if _head.is_some() {
-    //     // If head exists - save exists.
-    //     ssh_restic_backup(
-    //         &config.ssh_host,
-    //         &config.remote_save_folder_path,
-    //         &config.remote_backup_key,
-    //     )?;
-    // } else {
-    //     println!("No remote save found - skipping backup");
-    // }
+    if _head.is_some() {
+        client.remote_backup()?;
+    } else {
+        println!("No remote HEAD found - skipping backup");
+    }
 
     // // 5. Actually push.
     let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
