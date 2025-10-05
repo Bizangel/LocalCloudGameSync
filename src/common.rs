@@ -20,12 +20,12 @@ impl fmt::Display for Revision {
             .and_then(|dt| {
                 Some(
                     dt.with_timezone(&Local)
-                        .format("%Y-%m-%d %H:%M:%S")
+                        .format("%H:%M:%S %a %e %b %Y [%Z]")
                         .to_string(),
                 )
             })
             .unwrap_or_default();
-        write!(f, "{}@{}", self.hash, utctime)
+        write!(f, "{} ({})", utctime, self.hash)
     }
 }
 
