@@ -1,3 +1,4 @@
+use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
 use crate::config::config_commons::{REMOTE_HEAD_FOLDER_NAME, REMOTE_SAVES_FOLDER_NAME};
 use crate::remote_save_client::RemoteSaveClient;
@@ -17,7 +18,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         return SshSaveClient { config: config };
     }
 
-    fn get_remote_head(&self) -> Result<Option<String>, String> {
+    fn get_remote_head(&self) -> Result<Option<Revision>, String> {
         let exists_command = format!(
             "cd {dir} 2>/dev/null || exit 100; \
         [ -r {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && cat {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD && exit 0; \
@@ -29,9 +30,12 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
 
         let res = ssh_command(&self.config.ssh_host, self.config.ssh_port, &exists_command)?;
         return match res.code.code() {
-            Some(0) => String::from_utf8(res.stdout)
-                .map(|x| Some(String::from(x.trim())))
-                .map_err(|e| format!("Unable to read file HEAD {}", e)),
+            Some(0) => {
+                let filestr = String::from_utf8(res.stdout)
+                    .map_err(|e| format!("Unable to read file HEAD {}", e))?;
+                let rev = Revision::deserialize(filestr.trim())?;
+                return Ok(Some(rev));
+            }
             Some(1) => Err(String::from("Remote HEAD file is not readable")),
             Some(2) => Ok(None),
             Some(_) | None => Err(format!(
@@ -71,7 +75,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         };
     }
 
-    fn push(&self, src_path: &UploadTempFolder, new_head_hash: &str) -> Result<(), String> {
+    fn push(&self, src_path: &UploadTempFolder, new_head: &Revision) -> Result<(), String> {
         let rmrf_cmd = ssh_command(
             &self.config.ssh_host,
             self.config.ssh_port,
@@ -113,7 +117,8 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &self.config.ssh_host,
             self.config.ssh_port,
             &format!(
-                "echo \"{new_head_hash}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
+                "echo \"{headstr}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
+                headstr = new_head.serialize(),
                 base = &self.config.remote_save_folder_path,
                 key = &self.config.remote_sync_key
             ),

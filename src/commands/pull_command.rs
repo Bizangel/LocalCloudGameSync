@@ -1,7 +1,6 @@
 use crate::config::load_and_validate_config;
-use crate::local_head::write_local_head;
+use crate::local_head::{generate_current_head, write_local_head};
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
-use crate::tree_utils::tree_folder_hash;
 
 pub fn pull_command(save_config_key: &String, push_if_head: Option<&str>) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
@@ -25,7 +24,7 @@ pub fn pull_command(save_config_key: &String, push_if_head: Option<&str>) -> Res
     };
     // 2.1. Check if head matches as expected - if provided
     if let Some(push_if_head) = push_if_head {
-        if remote_head != push_if_head {
+        if remote_head.hash != push_if_head {
             return Err(format!(
                 "HEAD was modified between check and pull. Expected: {push_if_head} Found: {remote_head}. Please try again."
             ));
@@ -35,7 +34,7 @@ pub fn pull_command(save_config_key: &String, push_if_head: Option<&str>) -> Res
     // 3. Get current hash - stop if local already has same hash
     // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.
     // Any decision handling logic should be handled by other commands.
-    let local_hash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
+    let local_hash = generate_current_head(&config.local_save_folder, &config.ignore_globset)?;
     if remote_head == local_hash {
         println!("Local is up-to-date found same HEAD: {local_hash}");
         return Ok(());

@@ -1,10 +1,9 @@
+use crate::utils::get_unix_timestamp_secs;
+
 use super::*;
 use globset::GlobSet;
 use serial_test::serial;
-use std::{
-    path::Path,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::path::Path;
 
 const TEST_SSH_HOST: &str = "testuser@localhost";
 const TEST_SSH_PORT: u32 = 2222;
@@ -40,11 +39,7 @@ fn test_lock_acquire_and_fail() {
 #[serial]
 fn test_stale_lock() {
     // Create an old timestamp manually to simulate a stale lock
-    let old_ts = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
-        - (STALE_TIMEOUT_SECS + 1);
+    let old_ts = get_unix_timestamp_secs() - (STALE_TIMEOUT_SECS + 1);
 
     // Create lock folder and timestamp
     let _ = ssh_command(

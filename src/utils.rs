@@ -2,6 +2,8 @@ use std::io;
 use std::path;
 use std::path::PathBuf;
 use std::process::Command;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 #[cfg(target_os = "linux")]
 pub fn open_on_explorer(folder_path: &path::Path) -> io::Result<std::process::Child> {
@@ -38,4 +40,11 @@ pub fn get_steam_compatdata() -> Result<PathBuf, String> {
 pub fn get_steam_common() -> Result<PathBuf, String> {
     let steam_path = get_steam_path()?;
     Ok(steam_path.join("steamapps").join("common"))
+}
+
+pub fn get_unix_timestamp_secs() -> u64 {
+    return SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
 }

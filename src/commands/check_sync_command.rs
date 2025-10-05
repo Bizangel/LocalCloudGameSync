@@ -36,23 +36,41 @@ pub fn check_sync_command(save_config_key: &String) -> Result<(), String> {
     let remote_head = client.get_remote_head()?;
 
     let check_res = determine_sync_status(&SyncStatusCheckInput {
-        local_head: local_head.as_deref(),
+        local_head: local_head.as_ref().map(|h| h.hash.as_str()),
         current_head: &current_head,
-        remote_head: remote_head.as_deref(),
+        remote_head: remote_head.as_ref().map(|h| h.hash.as_str()),
     });
 
-    todo!();
+    let local_head_display = local_head
+        .as_ref()
+        .map(|x| x.to_string())
+        .unwrap_or_default();
 
-    // i need timestamps
-
+    let remote_head_display = remote_head
+        .as_ref()
+        .map(|x| x.to_string())
+        .unwrap_or_default();
     match check_res {
-        CheckSyncResult::UpToDate => println!("UpToDate"),
-        CheckSyncResult::FastForwardLocal => println!("UpToDate"),
-        CheckSyncResult::FastForwardRemote => println!("UpToDate"),
-        CheckSyncResult::Conflict => println!("Remote and local conflict found!"),
+        CheckSyncResult::UpToDate => {
+            println!("Already up to date! Current revision {current_head}")
+        }
+        CheckSyncResult::FastForwardLocal => {
+            println!(
+                "Local is out of date - new version on remote - will pull from remote.\nLocal: {} Remote: {}",
+                local_head_display, remote_head_display
+            )
+        }
+        CheckSyncResult::FastForwardRemote => println!(
+            "Remote is out of date - new version locally - will push to remote.\nLocal: {} Remote: {}",
+            local_head_display, remote_head_display
+        ),
+        CheckSyncResult::Conflict => {
+            println!(
+                "Conflict found - both remote and local have updates.\nLocal: {} Remote: {}",
+                local_head_display, remote_head_display
+            )
+        }
     }
-
-    // println!("")
 
     Ok(())
 }

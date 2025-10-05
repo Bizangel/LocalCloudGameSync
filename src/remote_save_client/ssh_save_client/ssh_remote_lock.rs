@@ -3,6 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::config::RuntimeSyncConfig;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_utils::ssh_command;
+use crate::utils::get_unix_timestamp_secs;
 
 pub const LOCK_FOLDER: &str = "/tmp/local_cloud_game_sync.lock";
 pub const STALE_TIMEOUT_SECS: u64 = 300; // 5 mins
@@ -28,10 +29,7 @@ impl<'c> RemoteLock<'c> for SshRemoteLock<'c> {
             if let Ok(output) = ssh_command(&config.ssh_host, config.ssh_port, &read_ts_cmd) {
                 if let Ok(ts_str) = String::from_utf8(output.stdout) {
                     if let Ok(ts) = ts_str.trim().parse::<u64>() {
-                        let now = SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .unwrap()
-                            .as_secs();
+                        let now = get_unix_timestamp_secs();
 
                         let expiry_timestamp = ts + STALE_TIMEOUT_SECS;
 

@@ -1,7 +1,7 @@
 use crate::config::load_and_validate_config;
-use crate::local_head::write_local_head;
+use crate::local_head::{generate_current_head, write_local_head};
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
-use crate::tree_utils::{tree_folder_hash, tree_folder_temp_copy};
+use crate::tree_utils::tree_folder_temp_copy;
 
 pub fn push_command(save_config_key: &String, push_if_head: Option<&str>) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
@@ -19,10 +19,10 @@ pub fn push_command(save_config_key: &String, push_if_head: Option<&str>) -> Res
     let remote_head = client.get_remote_head()?;
     // 2.1. Check if head matches as expected - if provided
     if let Some(push_if_head) = push_if_head {
-        let rmt = remote_head.clone().unwrap_or_default();
-        if rmt != push_if_head {
+        let remote_head_hash: String = remote_head.clone().map(|x| x.hash).unwrap_or_default();
+        if remote_head_hash != push_if_head {
             return Err(format!(
-                "HEAD was modified between check and push. Expected: {push_if_head} Found: {rmt}. Please try again."
+                "HEAD was modified between check and push. Expected: {push_if_head} Found: {remote_head_hash}. Please try again."
             ));
         }
     };
@@ -30,37 +30,37 @@ pub fn push_command(save_config_key: &String, push_if_head: Option<&str>) -> Res
     // 3. Get current hash - stop if remote already has same hash.
     // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.
     // Any decision handling logic should be handled by other commands.
-    let local_hash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
+    let local_hash = generate_current_head(&config.local_save_folder, &config.ignore_globset)?;
     if remote_head.clone().is_some_and(|head| head == local_hash) {
         println!("Remote is up-to-date found same HEAD: {local_hash}");
         return Ok(());
     }
 
     // 4. Perform remote snapshot
-    if remote_head.is_some() {
-        println!(
-            "Found existing data for {} in remote - Triggering remote Snapshot",
-            config.remote_sync_key
-        );
-        client.remote_snapshot()?;
-        println!(
-            "Successfully snapshotted remote HEAD: {}",
-            remote_head.unwrap_or_default()
-        );
-    } else {
-        println!("No remote HEAD found - skipping snapshot");
-    }
+    match remote_head.as_ref() {
+        Some(head) => {
+            println!(
+                "Found existing data for {} in remote - Triggering remote Snapshot",
+                config.remote_sync_key
+            );
+            client.remote_snapshot()?;
+            println!("Successfully snapshotted remote HEAD: {}", head);
+        }
+        None => {
+            println!("No remote HEAD found - skipping snapshot")
+        }
+    };
 
-    // 4. Actually push.
+    // 5. Actually push.
     let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
     client.push(&temp_folder, &local_hash)?;
     println!("Pushed to remote new HEAD {local_hash} successfully!");
 
-    // 5. Update local head
+    // 6. Update local head
     write_local_head(&config.remote_sync_key, &local_hash)?;
     println!("Successfully updated local head");
 
-    // 6. Perform snapshot again after update.
+    // 7. Perform snapshot again after update.
     println!("Triggering post-upload remote snapshot");
     client.remote_snapshot()?;
     println!("Successfully snapshotted HEAD: {}", local_hash);

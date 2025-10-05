@@ -1,3 +1,4 @@
+use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::SshSaveClient;
@@ -9,7 +10,7 @@ pub trait RemoteSaveClient<'c> {
         Self: Sized;
 
     /// Gets the current remote HEAD. This is best - effort so be wary of race-conditions.
-    fn get_remote_head(&self) -> Result<Option<String>, String>;
+    fn get_remote_head(&self) -> Result<Option<Revision>, String>;
 
     /// Triggers a remote snapshot process for the current save key configuration.
     /// Should only be triggered if there is something to snapshot. (If HEAD exists)
@@ -21,7 +22,7 @@ pub trait RemoteSaveClient<'c> {
 
     /// Pushes to the remote save repository - overwriting the destination and updating the remote HEAD.
     /// This function should implement a mirror functionality - deleting any existing files present in dst but not in src.
-    fn push(&self, path: &UploadTempFolder, new_head_hash: &str) -> Result<(), String>;
+    fn push(&self, path: &UploadTempFolder, new_head_hash: &Revision) -> Result<(), String>;
 
     /// Pulls from the remote save repository - overwriting the local folder.
     /// Does NOT update local HEAD.

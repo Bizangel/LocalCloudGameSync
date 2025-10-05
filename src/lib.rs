@@ -1,4 +1,5 @@
 pub mod commands;
+pub mod common;
 pub mod config;
 pub mod local_head;
 pub mod remote_save_client;
