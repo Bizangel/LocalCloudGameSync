@@ -1,4 +1,5 @@
 use crate::config::load_and_validate_config;
+use crate::local_head::write_local_head;
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::{tree_folder_hash, tree_folder_temp_copy};
 
@@ -18,6 +19,8 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     let remote_head = client.get_remote_head()?;
 
     // 3. Get current hash - stop if remote already has same hash.
+    // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.
+    // Any decision handling logic should be handled by other commands.
     let local_hash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
     if remote_head.clone().is_some_and(|head| head == local_hash) {
         println!("Remote is up-to-date found same HEAD: {local_hash}");
@@ -42,9 +45,11 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     // 4. Actually push.
     let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
     client.push(&temp_folder, &local_hash)?;
-    println!("Pushed successfully!");
+    println!("Pushed to remote new HEAD {local_hash} successfully!");
 
-    // Update last uploaded local head
+    // 5. Update last uploaded local head
+    write_local_head(&config.remote_sync_key, &local_hash)?;
+    println!("Successfully updated local head");
 
     // 6. Perform snapshot again after update.
     println!("Triggering post-upload remote snapshot");

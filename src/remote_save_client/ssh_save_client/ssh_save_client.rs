@@ -69,7 +69,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         };
     }
 
-    fn push(&self, src_path: &UploadTempFolder, new_head: &str) -> Result<(), String> {
+    fn push(&self, src_path: &UploadTempFolder, new_head_hash: &str) -> Result<(), String> {
         let rmrf_cmd = ssh_command(
             &self.config.ssh_host,
             self.config.ssh_port,
@@ -111,7 +111,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &self.config.ssh_host,
             self.config.ssh_port,
             &format!(
-                "echo \"{new_head}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
+                "echo \"{new_head_hash}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
                 base = &self.config.remote_save_folder_path,
                 key = &self.config.remote_sync_key
             ),
