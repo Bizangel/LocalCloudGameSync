@@ -1,6 +1,6 @@
 use crate::config::load_and_validate_config;
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
-use crate::tree_utils::tree_folder_temp_copy;
+use crate::tree_utils::{tree_folder_hash, tree_folder_temp_copy};
 
 pub fn push_command(save_config_key: &String) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
@@ -14,26 +14,25 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
         ));
     }
 
-    // // 2. Get HEAD contents
+    // 2. Get HEAD contents
     let _head = client.get_remote_head()?;
 
-    // // 4. Perform remote backup
+    // 3. Perform remote backup
     if _head.is_some() {
         client.remote_backup()?;
     } else {
         println!("No remote HEAD found - skipping backup");
     }
 
-    // // 5. Actually push.
+    // 4. Actually push.
+    let folderhash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
     let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
-    client.push(&temp_folder.path)?;
-
-    // scp_result.print();
-    // Update remote head
+    client.push(&temp_folder, &folderhash)?;
 
     // Update last uploaded local head
 
     // 6. Perform snapshot again after update.
+    client.remote_backup()?;
 
     // Note: We work under the assumption that everything is snapshotted - last upload should've snapshotted the previous save.
     // If backup failed last time - and then you try re-uploading.

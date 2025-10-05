@@ -10,6 +10,8 @@ pub struct RuntimeSyncConfig {
     pub ssh_host: String,
     pub ssh_port: u32,
     pub remote_backup_key: String,
+
+    /// The path to where to store the remote saves. Must be absolute.
     pub remote_save_folder_path: String,
     pub local_save_folder: PathBuf,
     pub ignore_globset: GlobSet,

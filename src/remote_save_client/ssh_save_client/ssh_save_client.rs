@@ -1,11 +1,10 @@
-use std::path::Path;
-
 use crate::config::RuntimeSyncConfig;
-use crate::config::config_commons::{REMOTE_HEAD_FOLDER, REMOTE_SAVES_FOLDER_NAME};
+use crate::config::config_commons::{REMOTE_HEAD_FOLDER_NAME, REMOTE_SAVES_FOLDER_NAME};
 use crate::remote_save_client::RemoteSaveClient;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_remote_lock::SshRemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_utils::{scp_folder, ssh_command};
+use crate::tree_utils::UploadTempFolder;
 
 pub struct SshSaveClient<'c> {
     config: &'c RuntimeSyncConfig,
@@ -19,8 +18,8 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
     fn get_remote_head(&self) -> Result<Option<String>, String> {
         let exists_command = format!(
             "cd {dir} 2>/dev/null || exit 100; \
-        [ -r {REMOTE_HEAD_FOLDER}/{key}.HEAD ] && cat {REMOTE_HEAD_FOLDER}/{key}.HEAD && exit 0; \
-        [ -e {REMOTE_HEAD_FOLDER}/{key}.HEAD ] && exit 1; \
+        [ -r {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && cat {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD && exit 0; \
+        [ -e {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && exit 1; \
         exit 2",
             dir = self.config.remote_save_folder_path,
             key = self.config.remote_backup_key
@@ -48,9 +47,9 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
     fn remote_backup(&self) -> Result<(), String> {
         let exists_command = format!(
             "cd {dir} 2>/dev/null || exit 100; \
-        [ ! -r {REMOTE_HEAD_FOLDER}/restic_password ] && exit 99; \
-        [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER}/restic_password || exit 98; }}; \
-        restic -r Snapshots/test-backup/ -p {REMOTE_HEAD_FOLDER}/restic_password backup RemoteSaves/{key}",
+        [ ! -r {REMOTE_HEAD_FOLDER_NAME}/restic_password ] && exit 99; \
+        [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER_NAME}/restic_password || exit 98; }}; \
+        restic -r Snapshots/{key}/ -p {REMOTE_HEAD_FOLDER_NAME}/restic_password backup {REMOTE_SAVES_FOLDER_NAME}/{key}",
             dir = self.config.remote_save_folder_path,
             key = self.config.remote_backup_key
         );
@@ -60,7 +59,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         return match res.code.code() {
             Some(0) => Ok(()),
             Some(99) => Err(format!(
-                "{REMOTE_HEAD_FOLDER}/restic_password does not exist or is unreadable!",
+                "{REMOTE_HEAD_FOLDER_NAME}/restic_password does not exist or is unreadable!",
             )),
             Some(_) | None => Err(format!(
                 "Error ocurred during SSH restic backup calls - Exit Code:{}\n{}",
@@ -70,11 +69,29 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         };
     }
 
-    fn push(&self, src_path: &Path) -> Result<(), String> {
+    fn push(&self, src_path: &UploadTempFolder, new_head: &str) -> Result<(), String> {
+        let rmrf_cmd = ssh_command(
+            &self.config.ssh_host,
+            self.config.ssh_port,
+            &format!(
+                "rm -rf {base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
+                base = &self.config.remote_save_folder_path,
+                key = &self.config.remote_backup_key
+            ),
+        )?;
+
+        if !rmrf_cmd.code.success() {
+            return Err(format!(
+                "Error ocurred during pre-SCP cleanup - Exit Code:{}\n{}",
+                rmrf_cmd.code_display(),
+                rmrf_cmd.output_lossy()
+            ));
+        }
+
         let scp_result = scp_folder(
             &self.config.ssh_host,
             self.config.ssh_port,
-            src_path,
+            &src_path.path,
             &format!(
                 "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
                 base = &self.config.remote_save_folder_path,
@@ -82,13 +99,32 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             ),
         )?;
 
-        return match scp_result.code.code() {
-            Some(0) => Ok(()),
-            Some(_) | None => Err(format!(
-                "Error ocurred during SCP - Exit Code:{}\n{}",
-                scp_result.code_display(),
-                scp_result.output_lossy()
-            )),
-        };
+        if !scp_result.code.success() {
+            return Err(format!(
+                "Error ocurred during during SCP - Exit Code:{}\n{}",
+                rmrf_cmd.code_display(),
+                rmrf_cmd.output_lossy()
+            ));
+        }
+
+        let updatehead_cmd = ssh_command(
+            &self.config.ssh_host,
+            self.config.ssh_port,
+            &format!(
+                "echo \"{new_head}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
+                base = &self.config.remote_save_folder_path,
+                key = &self.config.remote_backup_key
+            ),
+        )?;
+
+        if !updatehead_cmd.code.success() {
+            return Err(format!(
+                "Error updating remote HEAD - Exit Code:{}\n{}",
+                rmrf_cmd.code_display(),
+                rmrf_cmd.output_lossy()
+            ));
+        }
+
+        Ok(())
     }
 }

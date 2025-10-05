@@ -52,7 +52,6 @@ pub fn ssh_command(host: &str, port: u32, cmd: &str) -> Result<SshOutput, String
         .output()
         .map_err(|e| e.to_string())?;
 
-    // println!("Executing: ssh {}", cmd);
     if output.status.code() == Some(255) {
         let error = String::from_utf8(output.stderr).unwrap_or_default();
         return Err(format!("SSH Connection Error:\n{}", error));
@@ -76,7 +75,7 @@ pub fn scp_folder(
         .to_str()
         .ok_or_else(|| String::from("Invalid source folder for scp"))?;
 
-    let args = ["-p", &scp_port.to_string(), "-r", scp_source, &scp_target];
+    let args = ["-P", &scp_port.to_string(), "-r", scp_source, &scp_target];
     let output = Command::new("scp")
         .args(args)
         .output()

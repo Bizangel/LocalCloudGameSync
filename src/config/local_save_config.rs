@@ -45,12 +45,12 @@ impl LocalSaveOptionsJson {
         if [
             REMOTE_SNAPSHOT_FOLDER_NAME.to_lowercase(),
             REMOTE_SAVES_FOLDER_NAME.to_lowercase(),
-            REMOTE_HEAD_FOLDER.to_lowercase(),
+            REMOTE_HEAD_FOLDER_NAME.to_lowercase(),
         ]
         .contains(&parsed.remote_backup_key.to_lowercase())
         {
             return Err(format!(
-                "remoteBackupKey cannot be {REMOTE_SNAPSHOT_FOLDER_NAME} or {REMOTE_SAVES_FOLDER_NAME} or {REMOTE_HEAD_FOLDER}",
+                "remoteBackupKey cannot be {REMOTE_SNAPSHOT_FOLDER_NAME} or {REMOTE_SAVES_FOLDER_NAME} or {REMOTE_HEAD_FOLDER_NAME}",
             ));
         }
 
