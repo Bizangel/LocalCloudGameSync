@@ -3,7 +3,7 @@ use crate::local_head::write_local_head;
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::{tree_folder_hash, tree_folder_temp_copy};
 
-pub fn push_command(save_config_key: &String) -> Result<(), String> {
+pub fn push_command(save_config_key: &String, push_if_head: Option<&str>) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
     let client = get_default_remote_save_client(&config);
 
@@ -17,6 +17,15 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
 
     // 2. Get HEAD contents
     let remote_head = client.get_remote_head()?;
+    // 2.1. Check if head matches as expected - if provided
+    if let Some(push_if_head) = push_if_head {
+        let rmt = remote_head.clone().unwrap_or_default();
+        if rmt != push_if_head {
+            return Err(format!(
+                "HEAD was modified between check and push. Expected: {push_if_head} Found: {rmt}. Please try again."
+            ));
+        }
+    };
 
     // 3. Get current hash - stop if remote already has same hash.
     // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.

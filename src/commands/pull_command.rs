@@ -3,7 +3,7 @@ use crate::local_head::write_local_head;
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::tree_folder_hash;
 
-pub fn pull_command(save_config_key: &String) -> Result<(), String> {
+pub fn pull_command(save_config_key: &String, push_if_head: Option<&str>) -> Result<(), String> {
     let config = load_and_validate_config(save_config_key)?;
     let client = get_default_remote_save_client(&config);
 
@@ -22,6 +22,14 @@ pub fn pull_command(save_config_key: &String) -> Result<(), String> {
             "Unable to pull - no remote data found for given key {}",
             config.remote_sync_key
         ));
+    };
+    // 2.1. Check if head matches as expected - if provided
+    if let Some(push_if_head) = push_if_head {
+        if remote_head != push_if_head {
+            return Err(format!(
+                "HEAD was modified between check and pull. Expected: {push_if_head} Found: {remote_head}. Please try again."
+            ));
+        }
     };
 
     // 3. Get current hash - stop if local already has same hash
