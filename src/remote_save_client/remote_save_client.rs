@@ -13,7 +13,7 @@ pub trait RemoteSaveClient<'c> {
 
     /// Triggers a remote backup process for the current save key configuration.
     /// Should only be triggered if there is something to backup. (If HEAD exists)
-    fn remote_backup(&self) -> Result<(), String>;
+    fn remote_snapshot(&self) -> Result<(), String>;
 
     /// Acquires a remote lock.
     /// This should promise that any other clients of the sample implementation will not conflict and modify the remote repo while the lock is held.

@@ -15,27 +15,41 @@ pub fn push_command(save_config_key: &String) -> Result<(), String> {
     }
 
     // 2. Get HEAD contents
-    let _head = client.get_remote_head()?;
+    let remote_head = client.get_remote_head()?;
 
-    // 3. Perform remote backup
-    if _head.is_some() {
-        client.remote_backup()?;
+    // 3. Get current hash - stop if remote already has same hash.
+    let local_hash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
+    if remote_head.clone().is_some_and(|head| head == local_hash) {
+        println!("Remote is up-to-date found same HEAD: {local_hash}");
+        return Ok(());
+    }
+
+    // 4. Perform remote snapshot
+    if remote_head.is_some() {
+        println!(
+            "Found existing data for {} in remote - Triggering remote Snapshot",
+            config.remote_backup_key
+        );
+        client.remote_snapshot()?;
+        println!(
+            "Successfully snapshotted remote HEAD: {}",
+            remote_head.unwrap_or_default()
+        );
     } else {
-        println!("No remote HEAD found - skipping backup");
+        println!("No remote HEAD found - skipping snapshot");
     }
 
     // 4. Actually push.
-    let folderhash = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
     let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
-    client.push(&temp_folder, &folderhash)?;
+    client.push(&temp_folder, &local_hash)?;
+    println!("Pushed successfully!");
 
     // Update last uploaded local head
 
     // 6. Perform snapshot again after update.
-    client.remote_backup()?;
-
-    // Note: We work under the assumption that everything is snapshotted - last upload should've snapshotted the previous save.
-    // If backup failed last time - and then you try re-uploading.
+    println!("Triggering post-upload remote snapshot");
+    client.remote_snapshot()?;
+    println!("Successfully snapshotted HEAD: {}", local_hash);
 
     Ok(())
 }

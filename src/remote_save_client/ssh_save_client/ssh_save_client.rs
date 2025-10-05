@@ -44,7 +44,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         return SshRemoteLock::acquire(self.config);
     }
 
-    fn remote_backup(&self) -> Result<(), String> {
+    fn remote_snapshot(&self) -> Result<(), String> {
         let exists_command = format!(
             "cd {dir} 2>/dev/null || exit 100; \
         [ ! -r {REMOTE_HEAD_FOLDER_NAME}/restic_password ] && exit 99; \

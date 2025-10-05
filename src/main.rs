@@ -18,7 +18,7 @@ enum Commands {
     /// Perform the bi-directional sync process following the given game key settings.
     Sync { save_key: String },
     /// Perform uni-directional sync process for the given game key. Uploads the current local save overwriting the remote.
-    /// Because push can be a destructive action - a backup is always triggered on the remote before overwriting.
+    /// Because push can be a destructive action - a snapshot is always triggered on the remote before overwriting.
     Push { save_key: String },
     /// Shows what CLI would do without actually performing the sync for the given game key settings.
     Dryrun,
