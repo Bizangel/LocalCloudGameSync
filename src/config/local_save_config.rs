@@ -1,5 +1,5 @@
 use crate::config::config_commons::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 
 fn validate_remote_key(save_key: &str) -> bool {
@@ -11,7 +11,7 @@ fn validate_remote_key(save_key: &str) -> bool {
     !save_key.is_empty()
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalSaveOptionsJson {
     pub remote_sync_key: String,

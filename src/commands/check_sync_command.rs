@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::config::load_and_validate_config;
 use crate::local_head;
 use crate::remote_save_client::{RemoteSaveClient, get_default_remote_save_client};
@@ -28,8 +30,12 @@ struct SyncStatusCheckInput<'a> {
     remote_head: Option<&'a str>,
 }
 
-pub fn check_sync_command(save_config_key: &String, short_flag: bool) -> Result<(), String> {
-    let config = load_and_validate_config(save_config_key)?;
+pub fn check_sync_command(
+    save_config_key: &String,
+    short_flag: bool,
+    global_config_override: Option<&Path>,
+) -> Result<(), String> {
+    let config = load_and_validate_config(save_config_key, global_config_override)?;
     let client = get_default_remote_save_client(&config);
     let local_head = local_head::read_local_head(&config.remote_sync_key)?;
     let current_head = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;

@@ -1,4 +1,4 @@
-use std::process::ExitCode;
+use std::{path::PathBuf, process::ExitCode};
 
 use clap::{Parser, Subcommand};
 use local_cloud_game_sync::commands;
@@ -13,6 +13,10 @@ struct LocalGameSyncCli {
     /// Name of the person to greet
     #[command(subcommand)]
     command: Commands,
+
+    /// An optional global config file override - uses default global config location if not specified.
+    #[arg(long)]
+    config: Option<PathBuf>,
 }
 
 #[derive(Subcommand)]
@@ -63,13 +67,15 @@ fn main() -> ExitCode {
     let args = LocalGameSyncCli::parse();
 
     let command_res: Result<(), String> = match args.command {
-        Commands::CheckSync { save_key, short } => commands::check_sync_command(&save_key, short),
+        Commands::CheckSync { save_key, short } => {
+            commands::check_sync_command(&save_key, short, args.config.as_deref())
+        }
         Commands::Sync { save_key } => commands::sync_command(&save_key),
         Commands::Push { save_key, if_head } => {
-            commands::push_command(&save_key, if_head.as_deref())
+            commands::push_command(&save_key, if_head.as_deref(), args.config.as_deref())
         }
         Commands::Pull { save_key, if_head } => {
-            commands::pull_command(&save_key, if_head.as_deref())
+            commands::pull_command(&save_key, if_head.as_deref(), args.config.as_deref())
         }
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfigFolder => commands::open_config_folder_command(),

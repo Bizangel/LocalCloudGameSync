@@ -1,10 +1,16 @@
+use std::path::Path;
+
 use crate::config::load_and_validate_config;
 use crate::local_head::{generate_current_head, write_local_head};
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::tree_folder_temp_copy;
 
-pub fn push_command(save_config_key: &String, push_if_head: Option<&str>) -> Result<(), String> {
-    let config = load_and_validate_config(save_config_key)?;
+pub fn push_command(
+    save_config_key: &String,
+    push_if_head: Option<&str>,
+    global_config_override: Option<&Path>,
+) -> Result<(), String> {
+    let config = load_and_validate_config(save_config_key, global_config_override)?;
     let client = get_default_remote_save_client(&config);
 
     // 1. Get remote lock

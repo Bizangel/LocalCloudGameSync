@@ -1,6 +1,6 @@
 use crate::config::config_commons::*;
 use serde::{Deserialize, Serialize};
-use std::fs;
+use std::{fs, path::Path};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -11,8 +11,20 @@ pub struct GlobalSaveOptionsJson {
 }
 
 impl GlobalSaveOptionsJson {
-    pub fn get_global_config() -> Result<Option<GlobalSaveOptionsJson>, String> {
-        let filepath = get_global_sync_config_path()?;
+    pub fn get_global_config(
+        global_config_override: Option<&Path>,
+    ) -> Result<Option<GlobalSaveOptionsJson>, String> {
+        let filepath = match global_config_override {
+            Some(config) if config.exists() => config.to_path_buf(),
+            Some(config) => {
+                return Err(format!(
+                    "Provided config {} does not exist!",
+                    config.display()
+                ));
+            }
+            None => get_global_sync_config_path()?,
+        };
+
         if !filepath.exists() {
             return Ok(None);
         }

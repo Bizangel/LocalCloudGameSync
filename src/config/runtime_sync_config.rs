@@ -17,8 +17,11 @@ pub struct RuntimeSyncConfig {
     pub ignore_globset: GlobSet,
 }
 
-pub fn load_and_validate_config(save_config_key: &str) -> Result<RuntimeSyncConfig, String> {
-    let globalconfig = GlobalSaveOptionsJson::get_global_config()?;
+pub fn load_and_validate_config(
+    save_config_key: &str,
+    global_config_override: Option<&Path>,
+) -> Result<RuntimeSyncConfig, String> {
+    let globalconfig = GlobalSaveOptionsJson::get_global_config(global_config_override)?;
     let Some(globalconfig) = globalconfig else {
         return Err(format!(
             "Global config not found! Please run init-config command first."
