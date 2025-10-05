@@ -42,6 +42,18 @@ impl LocalSaveOptionsJson {
                 parsed.remote_backup_key
             ));
         }
+        if [
+            REMOTE_SNAPSHOT_FOLDER_NAME.to_lowercase(),
+            REMOTE_SAVES_FOLDER_NAME.to_lowercase(),
+            REMOTE_HEAD_FOLDER.to_lowercase(),
+        ]
+        .contains(&parsed.remote_backup_key.to_lowercase())
+        {
+            return Err(format!(
+                "remoteBackupKey cannot be {REMOTE_SNAPSHOT_FOLDER_NAME} or {REMOTE_SAVES_FOLDER_NAME} or {REMOTE_HEAD_FOLDER}",
+            ));
+        }
+
         // 3. Expand placeholders from function
         let modified = LocalSaveOptionsJson {
             save_folder_path: expand_config_placeholders(&parsed.save_folder_path),

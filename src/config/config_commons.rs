@@ -6,6 +6,10 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+pub const REMOTE_SNAPSHOT_FOLDER_NAME: &str = "Snapshots";
+pub const REMOTE_SAVES_FOLDER_NAME: &str = "GameSaves";
+pub const REMOTE_HEAD_FOLDER: &str = ".cloudmeta";
+
 pub const DATA_DIR_NAME: &str = "local_cloud_game_sync";
 pub const GLOBAL_SYNC_CONFIG_NAME: &str = "global_sync_config.json";
 

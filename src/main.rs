@@ -1,6 +1,9 @@
 use clap::{Parser, Subcommand};
 use local_cloud_game_sync::commands;
 
+const RED_ANSI_ESCAPE: &str = "\x1b[31m";
+const ANSI_RESET_ESCAPE: &str = "\x1b[0m";
+
 /// Bidirectional syncing program using SSH and rsync whilst also backing up game saves.
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -37,7 +40,6 @@ fn main() {
     };
 
     if let Err(e) = command_res {
-        eprintln!("Error executing command:");
-        eprintln!("{}", e);
+        eprintln!("{RED_ANSI_ESCAPE}{e}{ANSI_RESET_ESCAPE}");
     }
 }
