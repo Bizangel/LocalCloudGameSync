@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 /// generated from the global and specific sync config key given.
 pub struct RuntimeSyncConfig {
     pub ssh_host: String,
+    pub ssh_port: u32,
     pub remote_backup_key: String,
     pub remote_save_folder_path: String,
     pub local_save_folder: PathBuf,
@@ -49,6 +50,7 @@ pub fn load_and_validate_config(save_config_key: &str) -> Result<RuntimeSyncConf
 
     return Ok(RuntimeSyncConfig {
         ssh_host: globalconfig.ssh_host,
+        ssh_port: globalconfig.ssh_port.unwrap_or(22),
         remote_save_folder_path: globalconfig.remote_save_folder_path,
         remote_backup_key: config.remote_backup_key,
         local_save_folder: save_folder_path.to_owned(),

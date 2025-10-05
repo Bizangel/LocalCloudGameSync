@@ -6,6 +6,7 @@ use std::fs;
 #[serde(rename_all = "camelCase")]
 pub struct GlobalSaveOptionsJson {
     pub ssh_host: String,
+    pub ssh_port: Option<u32>,
     pub remote_save_folder_path: String,
 }
 

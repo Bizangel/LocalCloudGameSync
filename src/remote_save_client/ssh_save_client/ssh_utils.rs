@@ -44,9 +44,10 @@ impl SshOutput {
 }
 
 /// Runs a command over SSH and returns both the ExitStatus and stdout
-pub fn ssh_command(host: &str, cmd: &str) -> Result<SshOutput, String> {
+pub fn ssh_command(host: &str, port: u32, cmd: &str) -> Result<SshOutput, String> {
     let output = Command::new("ssh")
         .arg(host)
+        .args(["-p", port.to_string().as_str()])
         .arg(cmd)
         .output()
         .map_err(|e| e.to_string())?;
@@ -66,6 +67,7 @@ pub fn ssh_command(host: &str, cmd: &str) -> Result<SshOutput, String> {
 
 pub fn scp_folder(
     ssh_host: &str,
+    scp_port: u32,
     src_folder: &Path,
     dst_folder: &str,
 ) -> Result<SshOutput, String> {
@@ -74,7 +76,7 @@ pub fn scp_folder(
         .to_str()
         .ok_or_else(|| String::from("Invalid source folder for scp"))?;
 
-    let args = ["-r", scp_source, &scp_target];
+    let args = ["-p", &scp_port.to_string(), "-r", scp_source, &scp_target];
     let output = Command::new("scp")
         .args(args)
         .output()

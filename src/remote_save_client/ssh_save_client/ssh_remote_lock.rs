@@ -18,14 +18,14 @@ impl<'c> RemoteLock<'c> for SshRemoteLock<'c> {
     fn acquire(config: &'c RuntimeSyncConfig) -> Result<Self, String> {
         // Check if lock exists
         let test_lock_cmd = format!("[ -d {} ]", LOCK_FOLDER);
-        let lock_exists = ssh_command(&config.ssh_host, &test_lock_cmd)?
+        let lock_exists = ssh_command(&config.ssh_host, config.ssh_port, &test_lock_cmd)?
             .code
             .success();
 
         if lock_exists {
             // Read timestamp
             let read_ts_cmd = format!("cat {}/timestamp", LOCK_FOLDER);
-            if let Ok(output) = ssh_command(&config.ssh_host, &read_ts_cmd) {
+            if let Ok(output) = ssh_command(&config.ssh_host, config.ssh_port, &read_ts_cmd) {
                 if let Ok(ts_str) = String::from_utf8(output.stdout) {
                     if let Ok(ts) = ts_str.trim().parse::<u64>() {
                         let now = SystemTime::now()
@@ -37,7 +37,7 @@ impl<'c> RemoteLock<'c> for SshRemoteLock<'c> {
 
                         if expiry_timestamp < now {
                             let rm_cmd = format!("rm -rf {}", LOCK_FOLDER);
-                            ssh_command(&config.ssh_host, &rm_cmd)?;
+                            ssh_command(&config.ssh_host, config.ssh_port, &rm_cmd)?;
                         }
                     }
                 }
@@ -46,7 +46,7 @@ impl<'c> RemoteLock<'c> for SshRemoteLock<'c> {
 
         // Try to create the lock directory atomically
         let mkdir_cmd = format!("mkdir {}", LOCK_FOLDER);
-        let status = ssh_command(&config.ssh_host, &mkdir_cmd)?;
+        let status = ssh_command(&config.ssh_host, config.ssh_port, &mkdir_cmd)?;
 
         if status.code.success() {
             // Lock acquired, write timestamp inside lock-dir/timestamp
@@ -55,7 +55,7 @@ impl<'c> RemoteLock<'c> for SshRemoteLock<'c> {
                 .unwrap()
                 .as_secs();
             let write_ts_cmd = format!("echo {} > {}/timestamp", timestamp, LOCK_FOLDER);
-            ssh_command(&config.ssh_host, &write_ts_cmd)?;
+            ssh_command(&config.ssh_host, config.ssh_port, &write_ts_cmd)?;
 
             println!("Remote Lock acquired: {}", LOCK_FOLDER);
             Ok(Self {
@@ -82,7 +82,7 @@ impl<'c> Drop for SshRemoteLock<'c> {
     fn drop(&mut self) {
         if self.acquired {
             let rmdir_cmd = format!("rm {}/timestamp && rmdir {}", LOCK_FOLDER, LOCK_FOLDER);
-            match ssh_command(&self.config.ssh_host, &rmdir_cmd) {
+            match ssh_command(&self.config.ssh_host, self.config.ssh_port, &rmdir_cmd) {
                 Ok(status) if status.code.success() => {
                     println!("Remote Lock released: {}", LOCK_FOLDER);
                 }
@@ -96,3 +96,7 @@ impl<'c> Drop for SshRemoteLock<'c> {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "./ssh_remote_lock_test.rs"]
+mod ssh_remote_lock_test;

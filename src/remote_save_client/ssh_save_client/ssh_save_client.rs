@@ -26,7 +26,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             key = self.config.remote_backup_key
         );
 
-        let res = ssh_command(&self.config.ssh_host, &exists_command)?;
+        let res = ssh_command(&self.config.ssh_host, self.config.ssh_port, &exists_command)?;
         return match res.code.code() {
             Some(0) => String::from_utf8(res.stdout)
                 .map(|x| Some(String::from(x.trim())))
@@ -55,7 +55,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             key = self.config.remote_backup_key
         );
 
-        let res = ssh_command(&self.config.ssh_host, &exists_command)?;
+        let res = ssh_command(&self.config.ssh_host, self.config.ssh_port, &exists_command)?;
 
         return match res.code.code() {
             Some(0) => Ok(()),
@@ -73,6 +73,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
     fn push(&self, src_path: &Path) -> Result<(), String> {
         let scp_result = scp_folder(
             &self.config.ssh_host,
+            self.config.ssh_port,
             src_path,
             &format!(
                 "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
