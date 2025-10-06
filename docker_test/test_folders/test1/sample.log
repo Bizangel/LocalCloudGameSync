@@ -1,0 +1,16 @@
+Sep 05 17:33:08 server02 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: A process of this unit has been killed by the OOM killer.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Failed with result 'oom-kill'.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Consumed 41.760s CPU time.
+Sep 05 17:33:08 server02 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: A process of this unit has been killed by the OOM killer.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Failed with result 'oom-kill'.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Consumed 41.760s CPU time.
+Sep 05 17:33:08 server02 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: A process of this unit has been killed by the OOM killer.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Failed with result 'oom-kill'.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Consumed 41.760s CPU time.
+Sep 05 17:33:08 server02 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: A process of this unit has been killed by the OOM killer.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Failed with result 'oom-kill'.
+Sep 05 17:35:16 server02 systemd[1]: nginx.service: Consumed 41.760s CPU time.

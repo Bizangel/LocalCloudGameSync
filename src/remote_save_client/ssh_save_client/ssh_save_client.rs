@@ -107,9 +107,9 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
 
         if !scp_result.code.success() {
             return Err(format!(
-                "Error ocurred during during SCP - Exit Code:{}\n{}",
-                rmrf_cmd.code_display(),
-                rmrf_cmd.output_lossy()
+                "Error ocurred during SCP - Exit Code:{}\n{}",
+                scp_result.code_display(),
+                scp_result.output_lossy()
             ));
         }
 
@@ -149,7 +149,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
 
         if !scp_result.code.success() {
             return Err(format!(
-                "Error ocurred during during SCP - Exit Code:{}\n{}",
+                "Error ocurred during SCP - Exit Code:{}\n{}",
                 scp_result.code_display(),
                 scp_result.output_lossy()
             ));
