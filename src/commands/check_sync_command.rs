@@ -31,7 +31,7 @@ struct SyncStatusCheckInput<'a> {
 }
 
 pub fn check_sync_command(
-    save_config_key: &String,
+    save_config_key: &str,
     short_flag: bool,
     global_config_override: Option<&Path>,
 ) -> Result<(), String> {

@@ -6,7 +6,7 @@ use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote
 use crate::tree_utils::tree_folder_temp_copy;
 
 pub fn push_command(
-    save_config_key: &String,
+    save_config_key: &str,
     push_if_head: Option<&str>,
     global_config_override: Option<&Path>,
 ) -> Result<(), String> {

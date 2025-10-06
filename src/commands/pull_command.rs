@@ -5,7 +5,7 @@ use crate::local_head::{generate_current_head, write_local_head};
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 
 pub fn pull_command(
-    save_config_key: &String,
+    save_config_key: &str,
     push_if_head: Option<&str>,
     global_config_override: Option<&Path>,
 ) -> Result<(), String> {
