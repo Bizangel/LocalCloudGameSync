@@ -15,21 +15,37 @@ pub fn get_test_global_config() -> GlobalSaveOptionsJson {
     };
 }
 
-pub struct TempTestConfig {
+pub struct TempGlobalConfig {
     override_path: PathBuf,
+}
+
+impl TempGlobalConfig {
+    pub fn get_global_config() -> TempGlobalConfig {
+        let path = Path::new("./test_global_config.json");
+        fs::write(
+            path,
+            serde_json::to_string_pretty(&get_test_global_config()).unwrap(),
+        )
+        .expect("Couldn't write test global config");
+        return TempGlobalConfig {
+            override_path: path.to_path_buf(),
+        };
+    }
+}
+
+impl Drop for TempGlobalConfig {
+    fn drop(&mut self) {
+        fs::remove_file(&self.override_path).expect("Unable to clean temp test file config");
+    }
+}
+
+pub struct TempTestConfig {
     config_key: String,
 }
 
 impl TempTestConfig {
     pub fn with_config(cfg: &LocalSaveOptionsJson) -> TempTestConfig {
-        let path = Path::new("./test_global_config.json");
         let test_config_key = "__temp_test_config";
-        fs::write(
-            path,
-            serde_json::to_string_pretty(&get_test_global_config())
-                .expect("Failed to serialize global config"),
-        )
-        .expect("Couldn't write test global config");
         fs::write(
             get_sync_configs_folder()
                 .unwrap()
@@ -39,7 +55,6 @@ impl TempTestConfig {
         .expect("Couldn't write test local config");
 
         return TempTestConfig {
-            override_path: path.to_path_buf(),
             config_key: test_config_key.to_string(),
         };
     }
@@ -47,7 +62,6 @@ impl TempTestConfig {
 
 impl Drop for TempTestConfig {
     fn drop(&mut self) {
-        fs::remove_file(&self.override_path).expect("Unable to clean temp test file config");
         fs::remove_file(
             get_sync_configs_folder()
                 .unwrap()
@@ -74,11 +88,12 @@ pub fn setup_config(global_config: &GlobalSaveOptionsJson, local_config: &LocalS
 
 #[test]
 pub fn mytest() {
+    let globalcfg = TempGlobalConfig::get_global_config();
     let _cfg = TempTestConfig::with_config(&LocalSaveOptionsJson {
         remote_sync_key: "testKey".to_string(),
         save_folder_path: "temp_local".to_string(),
         save_ignore_glob: [].to_vec(),
     });
 
-    push_command(&_cfg.config_key, None, Some(&_cfg.override_path)).expect("Failed to push");
+    push_command(&_cfg.config_key, None, Some(&globalcfg.override_path)).expect("Failed to push");
 }
