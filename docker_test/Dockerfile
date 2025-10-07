@@ -19,7 +19,6 @@ RUN mkdir /var/run/sshd
 RUN useradd -m -s /bin/bash testuser && \
     passwd -d testuser
 
-
 RUN mkdir /home/testuser/testsaves && chown testuser:testuser /home/testuser/testsaves
 
 # Allow empty passwords for SSH (insecure, but fine for testing)

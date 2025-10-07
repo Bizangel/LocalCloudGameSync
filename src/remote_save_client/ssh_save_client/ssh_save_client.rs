@@ -80,7 +80,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &self.config.ssh_host,
             self.config.ssh_port,
             &format!(
-                "rm -rf {base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
+                "mkdir -p {base}/{REMOTE_SAVES_FOLDER_NAME} && rm -rf {base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
                 base = &self.config.remote_save_folder_path,
                 key = &self.config.remote_sync_key
             ),
@@ -127,8 +127,8 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         if !updatehead_cmd.code.success() {
             return Err(format!(
                 "Error updating remote HEAD - Exit Code:{}\n{}",
-                rmrf_cmd.code_display(),
-                rmrf_cmd.output_lossy()
+                updatehead_cmd.code_display(),
+                updatehead_cmd.output_lossy()
             ));
         }
 
