@@ -59,6 +59,50 @@ pub fn restic_snapshots_cmd_call(repo_path: &Path, password_file: &Path) -> io::
     Ok(stdout)
 }
 
+pub fn restic_restore_cmd_call(
+    repo_path: &Path,
+    password_file: &Path,
+    snapshot_id: &str,
+    target: &Path,
+) -> io::Result<()> {
+    // Sanity checks
+    if !repo_path.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Repository path not found",
+        ));
+    }
+    if !password_file.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Password file not found",
+        ));
+    }
+
+    let output = Command::new("restic")
+        .arg("-r")
+        .arg(repo_path)
+        .arg("--password-file")
+        .arg(password_file)
+        .arg("restore")
+        .arg(snapshot_id)
+        .arg("--target")
+        .arg(target)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("restic restore failed: {}", stderr),
+        ));
+    }
+
+    Ok(())
+}
+
 pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnapshotManifest>> {
     let repo_location = Path::new(REMOTE_TEST_PATH).join("Snapshots").join(sync_key);
     let cloudmeta_path = Path::new(REMOTE_TEST_PATH)

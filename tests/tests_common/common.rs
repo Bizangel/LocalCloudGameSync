@@ -6,8 +6,9 @@ pub const REMOTE_CONTAINER_INTERNAL_SAVE_FOLDER_PATH: &str = "/home/testuser/tes
 pub const TEST_GLOBAL_CONFIG_PATH: &str = "./test_global_config.json";
 pub const LOCAL_TEST_CONFIG_SAVE_KEY: &str = "__temp_test_config";
 
-pub const LOCAL_TEST_PATH: &str = "./temp_local";
-pub const REMOTE_TEST_PATH: &str = "./temp_remote";
+pub const LOCAL_TEST_PATH: &str = "./temp_tests/temp_local";
+pub const REMOTE_TEST_PATH: &str = "./temp_tests/temp_remote";
+// pub const TEMP_RESTIC_RESTORE_PATH: &str = "./temp_restored";
 
 pub fn get_test_global_config() -> GlobalSaveOptionsJson {
     return GlobalSaveOptionsJson {

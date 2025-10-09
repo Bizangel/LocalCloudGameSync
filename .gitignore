@@ -1,4 +1,3 @@
 /target
 .vscode
-temp_remote/
-temp_local/
+temp_tests/
