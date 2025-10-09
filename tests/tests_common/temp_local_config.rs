@@ -7,6 +7,7 @@ use super::common::LOCAL_TEST_CONFIG_SAVE_KEY;
 
 pub struct TempLocalConfig {
     pub config_key: String,
+    pub sync_key: String,
 }
 
 impl TempLocalConfig {
@@ -21,6 +22,7 @@ impl TempLocalConfig {
 
         return TempLocalConfig {
             config_key: LOCAL_TEST_CONFIG_SAVE_KEY.to_string(),
+            sync_key: cfg.remote_sync_key.clone(),
         };
     }
 }

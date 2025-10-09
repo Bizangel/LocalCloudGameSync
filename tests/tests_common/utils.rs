@@ -1,4 +1,5 @@
-use crate::tests_common::common::REMOTE_TEST_PATH;
+use crate::tests_common::common::REMOTE_TEST_SAVE_PATH;
+use crate::tests_common::common::TEMP_RESTIC_RESTORE_PATH;
 use crate::tests_common::restic_helper::ResticSnapshotManifest;
 use std::fs;
 use std::io;
@@ -104,8 +105,10 @@ pub fn restic_restore_cmd_call(
 }
 
 pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnapshotManifest>> {
-    let repo_location = Path::new(REMOTE_TEST_PATH).join("Snapshots").join(sync_key);
-    let cloudmeta_path = Path::new(REMOTE_TEST_PATH)
+    let repo_location = Path::new(REMOTE_TEST_SAVE_PATH)
+        .join("Snapshots")
+        .join(sync_key);
+    let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH)
         .join(".cloudmeta")
         .join("restic_password");
 
@@ -113,4 +116,22 @@ pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnaps
     let parse: Vec<ResticSnapshotManifest> = serde_json::from_str(&calljson)?;
 
     Ok(parse)
+}
+
+pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<()> {
+    let repo_location = Path::new(REMOTE_TEST_SAVE_PATH)
+        .join("Snapshots")
+        .join(sync_key);
+    let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH)
+        .join(".cloudmeta")
+        .join("restic_password");
+
+    restic_restore_cmd_call(
+        &repo_location,
+        &cloudmeta_path,
+        snapshot_id,
+        Path::new(TEMP_RESTIC_RESTORE_PATH),
+    )?;
+
+    Ok(())
 }

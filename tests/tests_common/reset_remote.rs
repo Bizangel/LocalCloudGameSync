@@ -4,7 +4,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use crate::tests_common::common::REMOTE_TEST_PATH;
+use crate::tests_common::common::REMOTE_TEST_SAVE_PATH;
 
 pub fn delete_head_files(dir: &Path) -> io::Result<()> {
     // Build a glob matcher for "*.HEAD"
@@ -31,9 +31,9 @@ pub fn delete_head_files(dir: &Path) -> io::Result<()> {
 
 pub fn reset_remote_repository() {
     println!("Resetting remote!");
-    let saves_path = Path::new(REMOTE_TEST_PATH).join("GameSaves");
-    let snapshots_path = Path::new(REMOTE_TEST_PATH).join("Snapshots");
-    let cloudmeta_path = Path::new(REMOTE_TEST_PATH).join(".cloudmeta");
+    let saves_path = Path::new(REMOTE_TEST_SAVE_PATH).join("GameSaves");
+    let snapshots_path = Path::new(REMOTE_TEST_SAVE_PATH).join("Snapshots");
+    let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH).join(".cloudmeta");
 
     if saves_path.exists() {
         fs::remove_dir_all(saves_path)
