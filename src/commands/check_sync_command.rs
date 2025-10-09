@@ -11,12 +11,14 @@ enum CheckSyncResult {
     FastForwardLocal,
     UpToDate,
     Conflict,
+    RemoteEmpty,
 }
 
 impl CheckSyncResult {
     fn as_str(&self) -> &'static str {
         match self {
             CheckSyncResult::UpToDate => "UpToDate",
+            CheckSyncResult::RemoteEmpty => "RemoteEmpty",
             CheckSyncResult::FastForwardLocal => "FastForwardLocal",
             CheckSyncResult::FastForwardRemote => "FastForwardRemote",
             CheckSyncResult::Conflict => "Conflict",
@@ -66,6 +68,12 @@ pub fn check_sync_command(
         CheckSyncResult::UpToDate => {
             println!("Already up to date! Current revision {current_head}")
         }
+        CheckSyncResult::RemoteEmpty => {
+            println!(
+                "Remote is empty - no HEAD found for remote for key {}. Will upload local head.\nLocal: {} ",
+                config.remote_sync_key, local_head_display
+            )
+        }
         CheckSyncResult::FastForwardLocal => {
             println!(
                 "Local is out of date - new version on remote - will pull from remote.\nLocal: {} Remote: {}",
@@ -89,7 +97,7 @@ pub fn check_sync_command(
 
 fn determine_sync_status(input: &SyncStatusCheckInput) -> CheckSyncResult {
     let Some(remote_head) = input.remote_head else {
-        return CheckSyncResult::FastForwardRemote; // no remote so just push
+        return CheckSyncResult::RemoteEmpty; // no remote so just push
     };
 
     let Some(local_head) = input.local_head else {
@@ -130,7 +138,7 @@ mod tests {
                 current_head: HEAD,
                 remote_head: None
             }),
-            CheckSyncResult::FastForwardRemote // if both local and remote repos are missing - should upload
+            CheckSyncResult::RemoteEmpty // if both local and remote repos are missing - should upload
         );
     }
 
