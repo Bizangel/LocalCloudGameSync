@@ -6,7 +6,7 @@ use crate::remote_save_client::{RemoteSaveClient, get_default_remote_save_client
 use crate::tree_utils::tree_folder_hash;
 
 #[derive(Debug, PartialEq)]
-enum CheckSyncResult {
+pub enum CheckSyncResult {
     FastForwardRemote,
     FastForwardLocal,
     UpToDate,
@@ -36,7 +36,7 @@ pub fn check_sync_command(
     save_config_key: &str,
     short_flag: bool,
     global_config_override: Option<&Path>,
-) -> Result<(), String> {
+) -> Result<CheckSyncResult, String> {
     let config = load_and_validate_config(save_config_key, global_config_override)?;
     let client = get_default_remote_save_client(&config);
     let local_head = local_head::read_local_head(&config.remote_sync_key)?;
@@ -51,7 +51,7 @@ pub fn check_sync_command(
 
     if short_flag {
         println!("{}", check_res.as_str());
-        return Ok(());
+        return Ok(check_res);
     }
 
     let local_head_display = local_head
@@ -92,7 +92,7 @@ pub fn check_sync_command(
         }
     }
 
-    Ok(())
+    Ok(check_res)
 }
 
 fn determine_sync_status(input: &SyncStatusCheckInput) -> CheckSyncResult {

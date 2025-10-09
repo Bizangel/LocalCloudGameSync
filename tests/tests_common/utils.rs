@@ -1,6 +1,9 @@
+use crate::tests_common::common::REMOTE_TEST_PATH;
+use crate::tests_common::restic_helper::ResticSnapshotManifest;
 use std::fs;
 use std::io;
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     fs::create_dir_all(&dst)?;
@@ -14,4 +17,56 @@ pub fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<
         }
     }
     Ok(())
+}
+
+pub fn restic_snapshots_cmd_call(repo_path: &Path, password_file: &Path) -> io::Result<String> {
+    // Sanity checks
+    if !repo_path.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Repository path not found",
+        ));
+    }
+    if !password_file.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Password file not found",
+        ));
+    }
+
+    // Run restic
+    let output = Command::new("restic")
+        .arg("-r")
+        .arg(repo_path)
+        .arg("--password-file")
+        .arg(password_file)
+        .arg("snapshots")
+        .arg("--json")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("restic failed: {}", stderr),
+        ));
+    }
+
+    // Return JSON output
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(stdout)
+}
+
+pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnapshotManifest>> {
+    let repo_location = Path::new(REMOTE_TEST_PATH).join("Snapshots").join(sync_key);
+    let cloudmeta_path = Path::new(REMOTE_TEST_PATH)
+        .join(".cloudmeta")
+        .join("restic_password");
+
+    let calljson = restic_snapshots_cmd_call(&repo_location, &cloudmeta_path)?;
+    let parse: Vec<ResticSnapshotManifest> = serde_json::from_str(&calljson)?;
+
+    Ok(parse)
 }

@@ -5,6 +5,7 @@ mod pull_command;
 mod push_command;
 mod sync_command;
 
+pub use check_sync_command::CheckSyncResult;
 pub use check_sync_command::check_sync_command;
 pub use init_command::init_command;
 pub use open_config_folder_command::open_config_folder_command;

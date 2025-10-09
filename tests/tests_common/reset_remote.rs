@@ -34,10 +34,16 @@ pub fn reset_remote_repository() {
     let saves_path = Path::new(REMOTE_TEST_PATH).join("GameSaves");
     let snapshots_path = Path::new(REMOTE_TEST_PATH).join("Snapshots");
     let cloudmeta_path = Path::new(REMOTE_TEST_PATH).join(".cloudmeta");
-    fs::remove_dir_all(saves_path)
-        .expect("Unable to delete GameSaves path on Post-Test Remote Cleanup");
-    fs::remove_dir_all(snapshots_path)
-        .expect("Unable to delete Snapshots path on Post-Test Remote Cleanup");
+
+    if saves_path.exists() {
+        fs::remove_dir_all(saves_path)
+            .expect("Unable to delete GameSaves path on Post-Test Remote Cleanup");
+    }
+    if snapshots_path.exists() {
+        fs::remove_dir_all(snapshots_path)
+            .expect("Unable to delete Snapshots path on Post-Test Remote Cleanup");
+    }
+
     delete_head_files(&cloudmeta_path)
         .expect("Unable to delete HEAD files on Post-Test Remote Cleanup");
 }

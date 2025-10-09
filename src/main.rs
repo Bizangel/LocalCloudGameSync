@@ -68,7 +68,7 @@ fn main() -> ExitCode {
 
     let command_res: Result<(), String> = match args.command {
         Commands::CheckSync { save_key, short } => {
-            commands::check_sync_command(&save_key, short, args.config.as_deref())
+            commands::check_sync_command(&save_key, short, args.config.as_deref()).map(|_| ())
         }
         Commands::Sync { save_key } => commands::sync_command(&save_key),
         Commands::Push { save_key, if_head } => {
