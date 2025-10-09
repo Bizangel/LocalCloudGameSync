@@ -3,6 +3,7 @@ mod tests_common;
 use local_cloud_game_sync::commands::push_command;
 use local_cloud_game_sync::config::LocalSaveOptionsJson;
 
+use crate::tests_common::reset_remote::reset_remote_repository;
 use crate::tests_common::temp_global_config::TempGlobalConfig;
 use crate::tests_common::temp_local_config::TempLocalConfig;
 use crate::tests_common::test_local_folder::TestLocalFolder;
@@ -18,4 +19,6 @@ pub fn mytest() {
     });
 
     push_command(&_cfg.config_key, None, Some(&globalcfg.override_path)).expect("Failed to push");
+
+    reset_remote_repository();
 }
