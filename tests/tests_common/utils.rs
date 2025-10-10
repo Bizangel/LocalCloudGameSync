@@ -1,6 +1,7 @@
 use crate::tests_common::common::REMOTE_TEST_SAVE_PATH;
 use crate::tests_common::common::TEMP_RESTIC_RESTORE_PATH;
 use crate::tests_common::restic_helper::ResticSnapshotManifest;
+use crate::tests_common::test_local_folder::TestTempFolder;
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -118,7 +119,7 @@ pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnaps
     Ok(parse)
 }
 
-pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<()> {
+pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<TestTempFolder> {
     let repo_location = Path::new(REMOTE_TEST_SAVE_PATH)
         .join("Snapshots")
         .join(sync_key);
@@ -126,12 +127,8 @@ pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<
         .join(".cloudmeta")
         .join("restic_password");
 
-    restic_restore_cmd_call(
-        &repo_location,
-        &cloudmeta_path,
-        snapshot_id,
-        Path::new(TEMP_RESTIC_RESTORE_PATH),
-    )?;
+    let restored_path = Path::new(TEMP_RESTIC_RESTORE_PATH);
+    restic_restore_cmd_call(&repo_location, &cloudmeta_path, snapshot_id, restored_path)?;
 
-    Ok(())
+    Ok(TestTempFolder::from_path(restored_path))
 }

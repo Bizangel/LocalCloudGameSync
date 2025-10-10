@@ -7,20 +7,18 @@ use local_cloud_game_sync::commands::{CheckSyncResult, check_sync_command, push_
 use local_cloud_game_sync::config::LocalSaveOptionsJson;
 use local_cloud_game_sync::tree_utils::tree_folder_hash;
 
-use crate::tests_common::common::{
-    LOCAL_TEST_SAVE_PATH, REMOTE_TEST_SAVE_PATH, TEMP_RESTIC_RESTORE_PATH,
-};
+use crate::tests_common::common::{LOCAL_TEST_SAVE_PATH, REMOTE_TEST_SAVE_PATH};
 use crate::tests_common::reset_remote::reset_remote_repository;
 use crate::tests_common::temp_global_config::TempGlobalConfig;
 use crate::tests_common::temp_local_config::TempLocalConfig;
-use crate::tests_common::test_local_folder::TestLocalFolder;
+use crate::tests_common::test_local_folder::TestTempFolder;
 use crate::tests_common::utils::{get_remote_restic_snapshots, restore_restic_snapshot};
 
 #[test]
 pub fn initial_upload_test() {
     reset_remote_repository();
 
-    let testfolder = TestLocalFolder::with_test_folder();
+    let testfolder = TestTempFolder::with_test_local_folder1();
     let globalcfg = TempGlobalConfig::get_global_config();
     let _cfg = TempLocalConfig::with_config(&LocalSaveOptionsJson {
         remote_sync_key: "testKey".to_string(),
@@ -38,7 +36,8 @@ pub fn initial_upload_test() {
     assert_eq!(snapshots.len(), 1); // There should be a single one new snapshot
 
     // validate snapshot restore.
-    restore_restic_snapshot(&_cfg.sync_key, &snapshots[0].id).expect("success");
+    let restored_restic =
+        restore_restic_snapshot(&_cfg.sync_key, &snapshots[0].id).expect("success");
 
     let localhash = tree_folder_hash(Path::new(LOCAL_TEST_SAVE_PATH), &GlobSet::empty()).unwrap();
     let remotehash = tree_folder_hash(
@@ -50,15 +49,11 @@ pub fn initial_upload_test() {
     .unwrap();
 
     let restored_hash = tree_folder_hash(
-        &Path::new(TEMP_RESTIC_RESTORE_PATH)
-            .join("GameSaves")
-            .join(&_cfg.sync_key),
+        &restored_restic.path.join("GameSaves").join(&_cfg.sync_key),
         &GlobSet::empty(),
     )
     .expect("Unable to hash");
 
     assert_eq!(localhash, remotehash); // equal hash
     assert_eq!(localhash, restored_hash); // equal hash
-
-    // TODO: Cleanup restic restored
 }
