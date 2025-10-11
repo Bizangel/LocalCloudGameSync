@@ -8,10 +8,13 @@ use super::common::LOCAL_TEST_CONFIG_SAVE_KEY;
 pub struct TempLocalConfig {
     pub config_key: String,
     pub sync_key: String,
+
+    #[allow(dead_code)]
+    pub config: LocalSaveOptionsJson,
 }
 
 impl TempLocalConfig {
-    pub fn with_config(cfg: &LocalSaveOptionsJson) -> TempLocalConfig {
+    pub fn from_config(cfg: LocalSaveOptionsJson) -> TempLocalConfig {
         fs::write(
             get_sync_configs_folder()
                 .unwrap()
@@ -23,6 +26,7 @@ impl TempLocalConfig {
         return TempLocalConfig {
             config_key: LOCAL_TEST_CONFIG_SAVE_KEY.to_string(),
             sync_key: cfg.remote_sync_key.clone(),
+            config: cfg,
         };
     }
 }
