@@ -40,6 +40,7 @@ pub fn happy_path_single_device() {
 
     // Everything is synced - check that program returns up to date from remote. (This allows silent launch)
     let sync_result = client.check_sync().unwrap();
+    let pre_play_hash = client.get_local_hash();
     assert_eq!(sync_result, CheckSyncResult::UpToDate);
 
     // We launch game silently because up to date - save is modified.
@@ -58,4 +59,6 @@ pub fn happy_path_single_device() {
     client.assert_local_data_matches_remote_data();
     client.assert_local_head_and_remote_head_matches_local_data();
     client.assert_is_last_snapshot_restorable_and_matches_local_data();
+    // Assert pre edit - snapshot was also successful.
+    client.assert_second_last_snapshot_is_restorable_and_matches_hash(&pre_play_hash);
 }
