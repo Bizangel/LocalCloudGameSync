@@ -1,6 +1,8 @@
 use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
-use crate::config::config_commons::{REMOTE_HEAD_FOLDER_NAME, REMOTE_SAVES_FOLDER_NAME};
+use crate::config::config_commons::{
+    REMOTE_HEAD_FOLDER_NAME, REMOTE_SAVES_FOLDER_NAME, REMOTE_SNAPSHOT_FOLDER_NAME,
+};
 use crate::remote_save_client::RemoteSaveClient;
 use crate::remote_save_client::remote_lock::RemoteLock;
 use crate::remote_save_client::ssh_save_client::ssh_remote_lock::SshRemoteLock;
@@ -54,8 +56,9 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         let exists_command = format!(
             "cd {dir} 2>/dev/null || exit 100; \
         [ ! -r {REMOTE_HEAD_FOLDER_NAME}/restic_password ] && exit 99; \
-        [ ! -d Snapshots/{key} ] && {{ restic init -r Snapshots/{key} -p {REMOTE_HEAD_FOLDER_NAME}/restic_password || exit 98; }}; \
-        restic -r Snapshots/{key}/ -p {REMOTE_HEAD_FOLDER_NAME}/restic_password backup {REMOTE_SAVES_FOLDER_NAME}/{key}",
+        [ ! -d {snapshot_folder}/{key} ] && {{ restic init -r {snapshot_folder}/{key} -p {REMOTE_HEAD_FOLDER_NAME}/restic_password || exit 98; }}; \
+        restic -r {snapshot_folder}/{key}/ -p {REMOTE_HEAD_FOLDER_NAME}/restic_password backup {REMOTE_SAVES_FOLDER_NAME}/{key}",
+            snapshot_folder = REMOTE_SNAPSHOT_FOLDER_NAME,
             dir = self.config.remote_save_folder_path,
             key = self.config.remote_sync_key
         );
