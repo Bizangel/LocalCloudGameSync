@@ -2,6 +2,8 @@ use local_cloud_game_sync::{
     config::config_commons::REMOTE_SAVES_FOLDER_NAME, local_head::read_local_head,
 };
 
+use crate::tests_common::utils::read_remote_head_test;
+
 use super::*;
 
 impl TestSyncClient {
@@ -40,20 +42,25 @@ impl TestSyncClient {
         );
     }
 
-    // pub fn assert_local_head_and_remote_head_matches_local_data(&self) {
-    //     let local_hash = self.get_local_hash();
+    pub fn assert_local_head_and_remote_head_matches_local_data(&self) {
+        let local_hash = self.get_local_hash();
 
-    //     let local_head =
-    //         read_local_head(&self.local_config.sync_key).expect("Unable to read local head");
+        let local_head = read_local_head(&self.local_config.sync_key)
+            .expect("Unable to read local head")
+            .expect("Expected non-empty local head");
 
-    //     &Path::new(REMOTE_TEST_SAVE_PATH)
-    //             .join(cloud)
-    //             .join(&self.local_config.sync_key),
+        let remote_head = read_remote_head_test(&self.local_config.sync_key)
+            .expect("Unable to read remote head")
+            .expect("Expected non-empty remote head");
 
-    //     remote_head =
-    //     let local_head = assert_eq!(
-    //         local_hash, restored_hash,
-    //         "Local and restored snapshot hashes don't match"
-    //     );
-    // }
+        assert_eq!(
+            local_hash, local_head.hash,
+            "Local data and local HEAD do not match"
+        );
+
+        assert_eq!(
+            local_hash, remote_head.hash,
+            "Remote HEAD and local data do not match"
+        );
+    }
 }

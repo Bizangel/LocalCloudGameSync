@@ -1,3 +1,4 @@
+use local_cloud_game_sync::common::Revision;
 use local_cloud_game_sync::config::config_commons::REMOTE_HEAD_FOLDER_NAME;
 use local_cloud_game_sync::config::config_commons::REMOTE_SNAPSHOT_FOLDER_NAME;
 
@@ -134,4 +135,23 @@ pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<
     restic_restore_cmd_call(&repo_location, &cloudmeta_path, snapshot_id, restored_path)?;
 
     Ok(TestTempFolder::from_path(restored_path))
+}
+
+pub fn read_remote_head_test(sync_key: &str) -> Result<Option<Revision>, String> {
+    let remote_head_path = &Path::new(REMOTE_TEST_SAVE_PATH)
+        .join(REMOTE_HEAD_FOLDER_NAME)
+        .join(format!("{}.HEAD", sync_key));
+
+    if !remote_head_path.exists() {
+        return Ok(None);
+    }
+
+    let folderbytes =
+        fs::read(remote_head_path).map_err(|e| format!("Unable to read remote head hash\n{e}"))?;
+
+    let headstr = String::from_utf8(folderbytes)
+        .map_err(|e| format!("Invalid UTF8 bytes reading remote head hash\n{e}"))?;
+
+    let rev = Revision::deserialize(&headstr)?;
+    Ok(Some(rev))
 }

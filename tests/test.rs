@@ -21,4 +21,5 @@ pub fn initial_upload_test() {
     client.assert_snapshot_count(1);
     client.assert_local_data_matches_remote_data();
     client.assert_is_snapshot_restorable_and_matches_local_data();
+    client.assert_local_head_and_remote_head_matches_local_data();
 }
