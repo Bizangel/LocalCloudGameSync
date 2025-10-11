@@ -1,3 +1,6 @@
+use local_cloud_game_sync::config::config_commons::REMOTE_HEAD_FOLDER_NAME;
+use local_cloud_game_sync::config::config_commons::REMOTE_SNAPSHOT_FOLDER_NAME;
+
 use crate::tests_common::common::REMOTE_TEST_SAVE_PATH;
 use crate::tests_common::common::TEMP_RESTIC_RESTORE_PATH;
 use crate::tests_common::restic_helper::ResticSnapshotManifest;
@@ -107,10 +110,10 @@ pub fn restic_restore_cmd_call(
 
 pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnapshotManifest>> {
     let repo_location = Path::new(REMOTE_TEST_SAVE_PATH)
-        .join("Snapshots")
+        .join(REMOTE_SNAPSHOT_FOLDER_NAME)
         .join(sync_key);
     let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH)
-        .join(".cloudmeta")
+        .join(REMOTE_HEAD_FOLDER_NAME)
         .join("restic_password");
 
     let calljson = restic_snapshots_cmd_call(&repo_location, &cloudmeta_path)?;
@@ -121,10 +124,10 @@ pub fn get_remote_restic_snapshots(sync_key: &str) -> io::Result<Vec<ResticSnaps
 
 pub fn restore_restic_snapshot(sync_key: &str, snapshot_id: &str) -> io::Result<TestTempFolder> {
     let repo_location = Path::new(REMOTE_TEST_SAVE_PATH)
-        .join("Snapshots")
+        .join(REMOTE_SNAPSHOT_FOLDER_NAME)
         .join(sync_key);
     let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH)
-        .join(".cloudmeta")
+        .join(REMOTE_HEAD_FOLDER_NAME)
         .join("restic_password");
 
     let restored_path = Path::new(TEMP_RESTIC_RESTORE_PATH);

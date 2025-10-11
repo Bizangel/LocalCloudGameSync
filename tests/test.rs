@@ -19,6 +19,6 @@ pub fn initial_upload_test() {
 
     // Assert
     client.assert_snapshot_count(1);
-    client.assert_local_matches_remote();
-    client.assert_local_matches_restored_snapshot();
+    client.assert_local_data_matches_remote_data();
+    client.assert_is_snapshot_restorable_and_matches_local_data();
 }

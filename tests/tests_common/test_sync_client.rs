@@ -3,6 +3,7 @@ use std::path::Path;
 use globset::GlobSet;
 use local_cloud_game_sync::{
     commands::{CheckSyncResult, check_sync_command, push_command},
+    config::config_commons::REMOTE_SAVES_FOLDER_NAME,
     tree_utils::tree_folder_hash,
 };
 
@@ -48,53 +49,18 @@ impl TestSyncClient {
         get_remote_restic_snapshots(&self.local_config.sync_key).expect("Failed to get snapshots")
     }
 
-    fn get_local_hash(&self) -> String {
+    pub fn get_local_hash(&self) -> String {
         tree_folder_hash(&self.local_save_folder.path, &GlobSet::empty()).unwrap()
     }
 
-    fn get_remote_hash(&self) -> String {
+    pub fn get_remote_hash(&self) -> String {
         tree_folder_hash(
             &Path::new(REMOTE_TEST_SAVE_PATH)
-                .join("GameSaves")
+                .join(REMOTE_SAVES_FOLDER_NAME)
                 .join(&self.local_config.sync_key),
             &GlobSet::empty(),
         )
         .unwrap()
-    }
-
-    pub fn assert_snapshot_count(&self, expected: usize) {
-        let snapshots = self.get_snapshots();
-        assert_eq!(snapshots.len(), expected, "Expected {} snapshots", expected);
-    }
-
-    pub fn assert_local_matches_remote(&self) {
-        let local_hash = self.get_local_hash();
-        let remote_hash = self.get_remote_hash();
-        assert_eq!(
-            local_hash, remote_hash,
-            "Local and remote hashes don't match"
-        );
-    }
-
-    pub fn assert_local_matches_restored_snapshot(&self) {
-        let snapshots = self.get_snapshots();
-        let restored = restore_restic_snapshot(&self.local_config.sync_key, &snapshots[0].id)
-            .expect("Failed to restore snapshot");
-
-        let local_hash = self.get_local_hash();
-        let restored_hash = tree_folder_hash(
-            &restored
-                .path
-                .join("GameSaves")
-                .join(&self.local_config.sync_key),
-            &GlobSet::empty(),
-        )
-        .expect("Failed to hash restored snapshot");
-
-        assert_eq!(
-            local_hash, restored_hash,
-            "Local and restored snapshot hashes don't match"
-        );
     }
 
     // // Helper for simulating game play
@@ -107,3 +73,6 @@ impl TestSyncClient {
 
 #[path = "./test_sync_client_builder.rs"]
 mod test_sync_client_builder;
+
+#[path = "./test_sync_client_assert.rs"]
+mod test_sync_client_assert;

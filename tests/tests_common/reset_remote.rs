@@ -1,5 +1,8 @@
 use globset::Glob;
 use globset::GlobSetBuilder;
+use local_cloud_game_sync::config::config_commons::REMOTE_HEAD_FOLDER_NAME;
+use local_cloud_game_sync::config::config_commons::REMOTE_SAVES_FOLDER_NAME;
+use local_cloud_game_sync::config::config_commons::REMOTE_SNAPSHOT_FOLDER_NAME;
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -31,17 +34,17 @@ pub fn delete_head_files(dir: &Path) -> io::Result<()> {
 
 pub fn reset_remote_repository() {
     println!("Resetting remote!");
-    let saves_path = Path::new(REMOTE_TEST_SAVE_PATH).join("GameSaves");
-    let snapshots_path = Path::new(REMOTE_TEST_SAVE_PATH).join("Snapshots");
-    let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH).join(".cloudmeta");
+    let saves_path = Path::new(REMOTE_TEST_SAVE_PATH).join(REMOTE_SAVES_FOLDER_NAME);
+    let snapshots_path = Path::new(REMOTE_TEST_SAVE_PATH).join(REMOTE_SNAPSHOT_FOLDER_NAME);
+    let cloudmeta_path = Path::new(REMOTE_TEST_SAVE_PATH).join(REMOTE_HEAD_FOLDER_NAME);
 
     if saves_path.exists() {
         fs::remove_dir_all(saves_path)
-            .expect("Unable to delete GameSaves path on Post-Test Remote Cleanup");
+            .expect("Unable to delete game saves path on Post-Test Remote Cleanup");
     }
     if snapshots_path.exists() {
         fs::remove_dir_all(snapshots_path)
-            .expect("Unable to delete Snapshots path on Post-Test Remote Cleanup");
+            .expect("Unable to delete snapshots path on Post-Test Remote Cleanup");
     }
 
     delete_head_files(&cloudmeta_path)
