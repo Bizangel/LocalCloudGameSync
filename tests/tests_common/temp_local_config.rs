@@ -2,6 +2,7 @@ use std::fs;
 
 use local_cloud_game_sync::config::LocalSaveOptionsJson;
 use local_cloud_game_sync::config::get_sync_configs_folder;
+use local_cloud_game_sync::local_head::LOCAL_UPLOADED_DIR_NAME;
 
 use super::common::LOCAL_TEST_CONFIG_SAVE_KEY;
 
@@ -39,5 +40,16 @@ impl Drop for TempLocalConfig {
                 .join(format!("{}.json", self.config_key)),
         )
         .expect("Unable to clean temp test file config");
+
+        let local_head_path = get_sync_configs_folder()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join(LOCAL_UPLOADED_DIR_NAME)
+            .join(format!("{}.HEAD", self.sync_key));
+
+        if local_head_path.exists() {
+            fs::remove_file(local_head_path).expect("Unable to cleanup head test file");
+        }
     }
 }

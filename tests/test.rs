@@ -7,7 +7,7 @@ use crate::tests_common::test_sync_client::TestSyncClient;
 pub fn initial_upload_test() {
     let client = TestSyncClient::builder()
         .with_empty_remote()
-        .with_sync_key("testKey")
+        .with_sync_key("__testKey")
         .with_local_test_folder1()
         .build();
 

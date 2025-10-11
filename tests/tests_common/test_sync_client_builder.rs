@@ -25,7 +25,12 @@ impl TestSyncClientBuilder {
     }
 
     pub fn with_sync_key(mut self, key: impl Into<String>) -> Self {
-        self.sync_key = Some(key.into());
+        let keystring: String = key.into();
+        assert!(
+            keystring.starts_with("__"),
+            "test key must begin with __ to avoid conflicts with real user configs!"
+        );
+        self.sync_key = Some(keystring);
         self
     }
 
