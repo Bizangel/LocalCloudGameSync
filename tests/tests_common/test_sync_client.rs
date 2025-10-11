@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs::OpenOptions, io::Write, path::Path};
 
 use globset::GlobSet;
 use local_cloud_game_sync::{
@@ -8,7 +8,7 @@ use local_cloud_game_sync::{
 };
 
 use crate::tests_common::{
-    common::REMOTE_TEST_SAVE_PATH,
+    common::{LOCAL_TEST_SAVE_PATH, REMOTE_TEST_SAVE_PATH},
     restic_helper::ResticSnapshotManifest,
     temp_global_config::TempGlobalConfig,
     temp_local_config::TempLocalConfig,
@@ -63,12 +63,29 @@ impl TestSyncClient {
         .unwrap()
     }
 
-    // // Helper for simulating game play
-    // fn simulate_game_session(&self) -> Result<(), String> {
-    //     // Modify files in the test folder to simulate gameplay
-    //     // This would be implemented based on your test file setup
-    //     Ok(())
-    // }
+    // Helper for simulating game play
+    pub fn modify_stored_save(&self) -> Result<(), String> {
+        // Modify files in the test folder to simulate gameplay
+        // This would be implemented based on your test file setup
+        let save_path = Path::new(LOCAL_TEST_SAVE_PATH).join("save_state.json");
+        if !save_path.exists() {
+            return Err(String::from(
+                "Cannot modify save path as didn't find save_state.json",
+            ));
+        }
+
+        let mut filebuf = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .create(false)
+            .open(save_path)
+            .map_err(|e| format!("{}", e))?;
+
+        filebuf
+            .write_all(b"edited_json")
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
 
 #[path = "./test_sync_client_builder.rs"]
