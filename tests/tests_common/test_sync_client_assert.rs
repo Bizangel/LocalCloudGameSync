@@ -21,10 +21,11 @@ impl TestSyncClient {
         );
     }
 
-    pub fn assert_is_snapshot_restorable_and_matches_local_data(&self) {
+    pub fn assert_is_last_snapshot_restorable_and_matches_local_data(&self) {
         let snapshots = self.get_snapshots();
-        let restored = restore_restic_snapshot(&self.local_config.sync_key, &snapshots[0].id)
-            .expect("Failed to restore snapshot");
+        let restored =
+            restore_restic_snapshot(&self.local_config.sync_key, &snapshots.last().unwrap().id)
+                .expect("Failed to restore snapshot");
 
         let local_hash = self.get_local_hash();
         let restored_hash = tree_folder_hash(

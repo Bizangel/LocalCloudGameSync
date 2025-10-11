@@ -23,7 +23,7 @@ pub fn initial_upload_test() {
     // Assert push was successful.
     client.assert_snapshot_count(1);
     client.assert_local_data_matches_remote_data();
-    client.assert_is_snapshot_restorable_and_matches_local_data();
+    client.assert_is_last_snapshot_restorable_and_matches_local_data();
     client.assert_local_head_and_remote_head_matches_local_data();
 }
 
@@ -57,5 +57,5 @@ pub fn happy_path_single_device() {
     client.assert_snapshot_count(3); // Setup snapshot + before write + after write.
     client.assert_local_data_matches_remote_data();
     client.assert_local_head_and_remote_head_matches_local_data();
-    // client.assert_is_snapshot_restorable_and_matches_local_data();
+    client.assert_is_last_snapshot_restorable_and_matches_local_data();
 }
