@@ -71,7 +71,7 @@ pub fn check_sync_command(
         CheckSyncResult::RemoteEmpty => {
             println!(
                 "Remote is empty - no HEAD found for remote for key {}. Will upload local head.\nLocal: {} ",
-                config.remote_sync_key, local_head_display
+                config.remote_sync_key, current_head
             )
         }
         CheckSyncResult::FastForwardLocal => {
@@ -82,7 +82,7 @@ pub fn check_sync_command(
         }
         CheckSyncResult::FastForwardRemote => println!(
             "Remote is out of date - new version locally - will push to remote.\nLocal: {} Remote: {}",
-            local_head_display, remote_head_display
+            current_head, remote_head_display
         ),
         CheckSyncResult::Conflict => {
             println!(
