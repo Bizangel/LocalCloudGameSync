@@ -68,6 +68,12 @@ pub fn init_configs_folder() -> Result<PathBuf, String> {
 
     // create global config
     let global_sync_config_path = get_global_sync_config_path()?;
+    if global_sync_config_path.exists() {
+        return Err(String::from(
+            "Global config already exists - skipping. Delete file first if you want to re-create",
+        ));
+    }
+
     let placeholder_global_options = GlobalSaveOptionsJson {
         ssh_host: String::from(""),
         ssh_port: Some(22),
