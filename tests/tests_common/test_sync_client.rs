@@ -14,6 +14,7 @@ use crate::tests_common::{
 pub struct TestSyncClient {
     pub config: RuntimeSyncConfig,
     _client_folder: TestTempFolder,
+    _client_name: String,
 }
 
 impl TestSyncClient {
@@ -22,15 +23,24 @@ impl TestSyncClient {
     }
 
     pub fn check_sync(&self) -> CheckSyncResult {
-        check_sync_command(&self.config, false).expect("Unable to check sync status")
+        println!("--- [{}] Starting Check-Sync ---- ", self._client_name);
+        let res = check_sync_command(&self.config, false).expect("Unable to check sync status");
+        println!("--- [{}] Finished Check-Sync ---- ", self._client_name);
+        return res;
     }
 
     pub fn push(&self) -> Result<(), String> {
-        push_command(&self.config, None)
+        println!("--- [{}] Starting push ---- ", self._client_name);
+        let res = push_command(&self.config, None)?;
+        println!("--- [{}] Finished push ---- ", self._client_name);
+        Ok(res)
     }
 
     pub fn pull(&self) -> Result<(), String> {
-        pull_command(&self.config, None)
+        println!("--- [{}] Starting pull ---- ", self._client_name);
+        let res = pull_command(&self.config, None)?;
+        println!("--- [{}] Finished pull ---- ", self._client_name);
+        Ok(res)
     }
 
     pub fn get_local_hash(&self) -> String {

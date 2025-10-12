@@ -46,7 +46,7 @@ impl TestSyncClientBuilder {
             .expect("No client name provided - provide a differentiator between clients");
 
         // Create client root folder
-        let client_root = Path::new(TESTING_RESOURCES_ROOT).join(client_name);
+        let client_root = Path::new(TESTING_RESOURCES_ROOT).join(&client_name);
         fs::create_dir(&client_root).expect("Unable to create test client root folder");
 
         // Create head folder
@@ -74,6 +74,7 @@ impl TestSyncClientBuilder {
 
         TestSyncClient {
             config: cfg,
+            _client_name: client_name,
             _client_folder: TestTempFolder::from_path(client_root), // will auto cleanup when client is out
         }
     }
