@@ -111,3 +111,54 @@ pub fn happy_path_multiple_devices() {
         &client1.get_local_hash(),
     );
 }
+
+#[serial]
+#[test]
+pub fn immutability_test() {
+    // Setup
+    let _remote = TestRemote::builder().with_empty_remote().build();
+    let client = TestSyncClient::builder()
+        .with_client_name("client1")
+        .with_sync_key("testKey")
+        .with_local_test_folder1()
+        .build();
+    client.push().expect("Failed setup push");
+    client.check_sync().assert_up_to_date();
+
+    // Act
+    // nothing changes.
+    client.check_sync().assert_up_to_date();
+}
+
+#[serial]
+#[test]
+pub fn weird_state_conflict() {
+    // Setup
+    let _remote = TestRemote::builder().with_empty_remote().build();
+    let client1 = TestSyncClient::builder()
+        .with_client_name("client1")
+        .with_sync_key("testKey")
+        .with_local_test_folder1()
+        .build();
+    client1.push().expect("Failed setup push");
+
+    let client2 = TestSyncClient::builder()
+        .with_client_name("client2")
+        .with_sync_key("testKey")
+        .with_empty_test_folder()
+        .build();
+    client2.pull().expect("Failed setup pull");
+    client1.check_sync().assert_up_to_date();
+    client2.check_sync().assert_up_to_date();
+
+    // Act
+    // client 2 plays remotely - pushes new version to remote
+    client2.modify_stored_save();
+    client2.push().expect("Unable to push to remote");
+
+    // client 1 - modifies save game manually
+    client1.modify_stored_save();
+
+    // client 1 should have a save conflict
+    client1.check_sync().assert_conflict();
+}
