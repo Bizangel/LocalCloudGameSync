@@ -1,5 +1,6 @@
 mod tests_common;
 
+use crate::tests_common::common::TEST_SSH_HOST;
 use crate::tests_common::test_sync_client::AssertableCheckSyncResult;
 use crate::tests_common::{test_remote::TestRemote, test_sync_client::TestSyncClient};
 use serial_test::serial;
@@ -161,4 +162,35 @@ pub fn weird_state_conflict() {
 
     // client 1 should have a save conflict
     client1.check_sync().assert_conflict();
+}
+
+#[serial]
+#[test]
+pub fn play_offline_come_back_internet() {
+    let remote = TestRemote::builder().with_empty_remote().build();
+    let mut client = TestSyncClient::builder()
+        .with_client_name("client1")
+        .with_sync_key("testKey")
+        .with_local_test_folder1()
+        .build();
+
+    client.push().expect("Failed setup push");
+    client.check_sync().assert_up_to_date();
+
+    // Act
+    client.config.ssh_host = "nonexistanthost".to_string();
+    client.push().expect_err("Expected failure when pushing");
+
+    // plays anyways offline
+    client.modify_stored_save();
+
+    // Back online
+    client.config.ssh_host = TEST_SSH_HOST.to_string();
+    client.check_sync().assert_fast_forward_remote(); // can fast forward
+    client.push().expect("Unable to push post-offline");
+
+    client.assert_snapshot_count(&remote, 3); // Setup snapshot + before write + after write.
+    client.assert_local_data_matches_remote_data(&remote);
+    client.assert_local_head_and_remote_head_matches_local_data(&remote);
+    client.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
 }
