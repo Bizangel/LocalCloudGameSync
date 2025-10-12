@@ -69,8 +69,9 @@ pub fn init_configs_folder() -> Result<PathBuf, String> {
     // create global config
     let global_sync_config_path = get_global_sync_config_path()?;
     if global_sync_config_path.exists() {
-        return Err(String::from(
-            "Global config already exists - skipping. Delete file first if you want to re-create",
+        return Err(format!(
+            "Config already exists at {}. Delete file first if you want to re-create",
+            global_sync_config_path.display()
         ));
     }
 
