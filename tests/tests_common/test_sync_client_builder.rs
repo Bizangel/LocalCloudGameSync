@@ -12,7 +12,7 @@ use crate::tests_common::{
 pub struct TestSyncClientBuilder {
     client_name: Option<String>,
     sync_key: Option<String>,
-    starting_save_folder: Option<PathBuf>,
+    starting_save_folder: Option<Option<PathBuf>>,
 }
 
 impl TestSyncClientBuilder {
@@ -34,8 +34,14 @@ impl TestSyncClientBuilder {
         self
     }
 
+    pub fn with_empty_test_folder(mut self) -> Self {
+        self.starting_save_folder = Some(None);
+        self
+    }
+
     pub fn with_local_test_folder1(mut self) -> Self {
-        self.starting_save_folder = Some(Path::new(TEST_SYNC_FOLDER_DATA_PATH_1).to_path_buf());
+        self.starting_save_folder =
+            Some(Some(Path::new(TEST_SYNC_FOLDER_DATA_PATH_1).to_path_buf()));
         self
     }
 
@@ -55,12 +61,16 @@ impl TestSyncClientBuilder {
 
         // Create actual client local test data.
         let client_save_folder = client_root.join("test_game_save_folder");
+        fs::create_dir(&client_save_folder)
+            .expect("Unable to create test client local save folder");
         let src_start_save_folder = self
             .starting_save_folder
             .expect("No starting save folder provided for test client.");
 
-        copy_dir_all(&src_start_save_folder, &client_save_folder)
-            .expect("Unable to copy test save folder for sync client test");
+        if let Some(src_start_save_folder) = src_start_save_folder {
+            copy_dir_all(&src_start_save_folder, &client_save_folder)
+                .expect("Unable to copy test save folder for sync client test");
+        }
 
         let cfg = RuntimeSyncConfig {
             ssh_host: TEST_SSH_HOST.to_string(),

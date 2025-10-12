@@ -48,14 +48,12 @@ impl TestSyncClient {
     }
 
     // Helper for simulating game play
-    pub fn modify_stored_save(&self) -> Result<(), String> {
+    pub fn modify_stored_save(&self) -> () {
         // Modify files in the test folder to simulate gameplay
         // This would be implemented based on your test file setup
         let save_path = self.config.local_save_folder.join("save_state.json");
         if !save_path.exists() {
-            return Err(String::from(
-                "Cannot modify save path as didn't find save_state.json",
-            ));
+            panic!("Cannot modify save path as didn't find save_state.json");
         }
 
         let mut filebuf = OpenOptions::new()
@@ -63,12 +61,11 @@ impl TestSyncClient {
             .append(true)
             .create(false)
             .open(save_path)
-            .map_err(|e| format!("{}", e))?;
+            .expect("Cannot modify stored save");
 
         filebuf
             .write_all(b"edited_json")
-            .map_err(|e| e.to_string())?;
-        Ok(())
+            .expect("Cannot modify stored save");
     }
 }
 

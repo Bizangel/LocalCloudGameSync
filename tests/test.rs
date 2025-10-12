@@ -42,9 +42,7 @@ pub fn happy_path_single_device() {
     let pre_play_hash = client.get_local_hash();
     client.check_sync().assert_up_to_date();
     // We launch game silently because up to date - save is modified.
-    client
-        .modify_stored_save()
-        .expect("Unable to modify stored save folder");
+    client.modify_stored_save();
 
     // Remote should be able to be fast-forwarded now. (This allows silent upload)
     client.check_sync().assert_fast_forward_remote();
@@ -74,8 +72,9 @@ pub fn happy_path_multiple_devices() {
     let client2 = TestSyncClient::builder()
         .with_client_name("client2")
         .with_sync_key("sameKey")
-        .with_local_test_folder1()
+        .with_empty_test_folder()
         .build();
+
     client1.push().expect("Failed setup push");
     client2.pull().expect("Failed to setup pull");
 
@@ -85,22 +84,30 @@ pub fn happy_path_multiple_devices() {
     client1.assert_local_data_matches_remote_data(&remote);
     client2.assert_local_data_matches_remote_data(&remote);
 
-    // // Act
-    // client
-    //     .modify_stored_save()
-    //     .expect("Unable to modify stored save folder");
+    // Plays game
+    client1.modify_stored_save();
+    // Everyone is up to date so launch game silently. Stops playing.
+    client1.check_sync().assert_fast_forward_remote(); // remote can be fast-forwarded.
+    client1.push().expect("Failed to push to remote"); // fast forward remote
 
-    // // Remote should be able to be fast-forwarded now. (This allows silent upload)
-    // let sync_result = client.check_sync().unwrap();
-    // assert_eq!(sync_result, CheckSyncResult::FastForwardRemote);
+    // Now remote 2 wants to play
+    client2.check_sync().assert_fast_forward_local(); // Should be able to silently fetch
+    client2.pull().expect("Failed to pull from remote"); // fast forward from remote.
+    client2.modify_stored_save(); // modifies it further
+    // Should be able to push silently
+    client2.check_sync().assert_fast_forward_remote();
+    client2.push().expect("Failed to push");
 
-    // client.push().expect("Failed to push post-modify");
+    // Assert
+    client2.assert_snapshot_count(&remote, 5); // Setup snapshot + before write + after write + before client 2 write + after client 2 write.
+    client2.assert_local_data_matches_remote_data(&remote);
+    client2.assert_local_head_and_remote_head_matches_local_data(&remote);
+    client2.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
 
-    // // Assert
-    // client.assert_snapshot_count(&remote, 3); // Setup snapshot + before write + after write.
-    // client.assert_local_data_matches_remote_data(&remote);
-    // client.assert_local_head_and_remote_head_matches_local_data(&remote);
-    // client.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
-    // // Assert pre edit - snapshot was also successful.
-    // client.assert_second_last_snapshot_is_restorable_and_matches_hash(&remote, &pre_play_hash);
+    // Assert that old client1 data is restorable and matches
+    // Assert pre edit - snapshot was also successful.
+    client1.assert_second_last_snapshot_is_restorable_and_matches_hash(
+        &remote,
+        &client1.get_local_hash(),
+    );
 }
