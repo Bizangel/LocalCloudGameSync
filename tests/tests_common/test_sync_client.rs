@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, io::Write, path::Path};
 
 use globset::GlobSet;
 use local_cloud_game_sync::{
-    commands::{CheckSyncResult, check_sync_command, push_command},
+    commands::{CheckSyncResult, check_sync_command, pull_command, push_command},
     config::RuntimeSyncConfig,
     tree_utils::tree_folder_hash,
 };
@@ -21,12 +21,16 @@ impl TestSyncClient {
         TestSyncClientBuilder::new()
     }
 
-    pub fn check_sync(&self) -> Result<CheckSyncResult, String> {
-        check_sync_command(&self.config, false)
+    pub fn check_sync(&self) -> CheckSyncResult {
+        check_sync_command(&self.config, false).expect("Unable to check sync status")
     }
 
     pub fn push(&self) -> Result<(), String> {
         push_command(&self.config, None)
+    }
+
+    pub fn pull(&self) -> Result<(), String> {
+        pull_command(&self.config, None)
     }
 
     pub fn get_local_hash(&self) -> String {
@@ -63,3 +67,5 @@ mod test_sync_client_builder;
 
 #[path = "./test_sync_client_assert.rs"]
 mod test_sync_client_assert;
+
+pub use test_sync_client_assert::AssertableCheckSyncResult;

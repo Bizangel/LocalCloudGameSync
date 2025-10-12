@@ -2,9 +2,38 @@ use local_cloud_game_sync::{
     config::config_commons::REMOTE_SAVES_FOLDER_NAME, local_head::read_local_head,
 };
 
+use super::*;
 use crate::tests_common::test_remote::TestRemote;
 
-use super::*;
+pub trait AssertableCheckSyncResult {
+    fn assert_up_to_date(&self);
+    fn assert_remote_empty(&self);
+    fn assert_fast_forward_remote(&self);
+    fn assert_fast_forward_local(&self);
+    fn assert_conflict(&self);
+}
+
+impl AssertableCheckSyncResult for CheckSyncResult {
+    fn assert_up_to_date(&self) {
+        assert_eq!(*self, CheckSyncResult::UpToDate);
+    }
+
+    fn assert_remote_empty(&self) {
+        assert_eq!(*self, CheckSyncResult::RemoteEmpty);
+    }
+
+    fn assert_fast_forward_remote(&self) {
+        assert_eq!(*self, CheckSyncResult::FastForwardRemote);
+    }
+
+    fn assert_fast_forward_local(&self) {
+        assert_eq!(*self, CheckSyncResult::FastForwardLocal);
+    }
+
+    fn assert_conflict(&self) {
+        assert_eq!(*self, CheckSyncResult::Conflict);
+    }
+}
 
 impl TestSyncClient {
     pub fn assert_local_data_matches_remote_data(&self, remote: &TestRemote) {

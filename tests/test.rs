@@ -1,9 +1,8 @@
 mod tests_common;
 
-use local_cloud_game_sync::commands::CheckSyncResult;
-use serial_test::serial;
-
+use crate::tests_common::test_sync_client::AssertableCheckSyncResult;
 use crate::tests_common::{test_remote::TestRemote, test_sync_client::TestSyncClient};
+use serial_test::serial;
 
 #[serial]
 #[test]
@@ -16,9 +15,8 @@ pub fn initial_upload_test() {
         .build();
 
     // Act
-    // Remote should be empty - and upload should be successufl.
-    let sync_result = client.check_sync().unwrap();
-    assert_eq!(sync_result, CheckSyncResult::RemoteEmpty);
+    // Remote should be empty - and upload should be successful.
+    client.check_sync().assert_remote_empty();
     client.push().expect("Failed to push");
 
     // Assert push was successful.
@@ -41,18 +39,15 @@ pub fn happy_path_single_device() {
     client.push().expect("Failed setup push"); // both local and remote are up to date
 
     // Everything is synced - check that program returns up to date from remote. (This allows silent launch)
-    let sync_result = client.check_sync().unwrap();
     let pre_play_hash = client.get_local_hash();
-    assert_eq!(sync_result, CheckSyncResult::UpToDate);
-
+    client.check_sync().assert_up_to_date();
     // We launch game silently because up to date - save is modified.
     client
         .modify_stored_save()
         .expect("Unable to modify stored save folder");
 
     // Remote should be able to be fast-forwarded now. (This allows silent upload)
-    let sync_result = client.check_sync().unwrap();
-    assert_eq!(sync_result, CheckSyncResult::FastForwardRemote);
+    client.check_sync().assert_fast_forward_remote();
 
     client.push().expect("Failed to push post-modify");
 
