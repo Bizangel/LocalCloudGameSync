@@ -26,7 +26,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         [ -r {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && cat {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD && exit 0; \
         [ -e {REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD ] && exit 1; \
         exit 2",
-            dir = self.config.remote_save_folder_path,
+            dir = self.config.remote_sync_root,
             key = self.config.remote_sync_key
         );
 
@@ -59,7 +59,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
         [ ! -d {snapshot_folder}/{key} ] && {{ restic init -r {snapshot_folder}/{key} -p {REMOTE_HEAD_FOLDER_NAME}/restic_password || exit 98; }}; \
         restic -r {snapshot_folder}/{key}/ -p {REMOTE_HEAD_FOLDER_NAME}/restic_password backup {REMOTE_SAVES_FOLDER_NAME}/{key}",
             snapshot_folder = REMOTE_SNAPSHOT_FOLDER_NAME,
-            dir = self.config.remote_save_folder_path,
+            dir = self.config.remote_sync_root,
             key = self.config.remote_sync_key
         );
 
@@ -84,7 +84,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             self.config.ssh_port,
             &format!(
                 "mkdir -p {base}/{REMOTE_SAVES_FOLDER_NAME} && rm -rf {base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
-                base = &self.config.remote_save_folder_path,
+                base = &self.config.remote_sync_root,
                 key = &self.config.remote_sync_key
             ),
         )?;
@@ -103,7 +103,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &src_path.path,
             &format!(
                 "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}",
-                base = &self.config.remote_save_folder_path,
+                base = &self.config.remote_sync_root,
                 key = &self.config.remote_sync_key
             ),
         )?;
@@ -122,7 +122,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             &format!(
                 "echo \"{headstr}\" > {base}/{REMOTE_HEAD_FOLDER_NAME}/{key}.HEAD",
                 headstr = new_head.serialize(),
-                base = &self.config.remote_save_folder_path,
+                base = &self.config.remote_sync_root,
                 key = &self.config.remote_sync_key
             ),
         )?;
@@ -144,7 +144,7 @@ impl<'c> RemoteSaveClient<'c> for SshSaveClient<'c> {
             self.config.ssh_port,
             &format!(
                 "{base}/{REMOTE_SAVES_FOLDER_NAME}/{key}/.", // use this syntax to ensure full copy
-                base = &self.config.remote_save_folder_path,
+                base = &self.config.remote_sync_root,
                 key = &self.config.remote_sync_key
             ),
             &self.config.local_save_folder,

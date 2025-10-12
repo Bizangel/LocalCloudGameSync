@@ -12,7 +12,7 @@ pub struct RuntimeSyncConfig {
     pub remote_sync_key: String,
 
     /// The path to where to store the remote saves. Must be absolute.
-    pub remote_save_folder_path: String,
+    pub remote_sync_root: String,
     pub local_save_folder: PathBuf,
     pub ignore_globset: GlobSet,
 }
@@ -73,7 +73,7 @@ pub fn load_and_validate_config(
     return Ok(RuntimeSyncConfig {
         ssh_host: globalconfig.ssh_host,
         ssh_port: globalconfig.ssh_port.unwrap_or(22),
-        remote_save_folder_path: globalconfig.remote_save_folder_path,
+        remote_sync_root: globalconfig.remote_sync_root,
         remote_sync_key: config.remote_sync_key,
         local_save_folder: save_folder_path.to_owned(),
         ignore_globset: ignore_globset,

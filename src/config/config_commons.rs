@@ -71,7 +71,9 @@ pub fn init_configs_folder() -> Result<PathBuf, String> {
     let placeholder_global_options = GlobalSaveOptionsJson {
         ssh_host: String::from(""),
         ssh_port: Some(22),
-        remote_save_folder_path: String::from(""),
+        remote_sync_root: String::from(""),
+        sync_config_folder_path: None,
+        local_head_folder: None,
     };
     fs::write(
         global_sync_config_path,

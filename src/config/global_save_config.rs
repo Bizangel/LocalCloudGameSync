@@ -7,7 +7,9 @@ use std::{fs, path::Path};
 pub struct GlobalSaveOptionsJson {
     pub ssh_host: String,
     pub ssh_port: Option<u32>,
-    pub remote_save_folder_path: String,
+    pub remote_sync_root: String,
+    pub sync_config_folder_path: Option<String>,
+    pub local_head_folder: Option<String>,
 }
 
 impl GlobalSaveOptionsJson {
@@ -40,13 +42,33 @@ impl GlobalSaveOptionsJson {
         if parsed.ssh_host.is_empty() {
             return Err(format!("sshHost key must not be empty in global config!"));
         }
-        if parsed.remote_save_folder_path.is_empty() {
+        if parsed.remote_sync_root.is_empty() {
             return Err(format!(
-                "remote_save_folder_path key must not be empty in global config!"
+                "remote_sync_root key must not be empty in global config!"
             ));
         }
-        if !parsed.remote_save_folder_path.starts_with("/") {
-            return Err(format!("remote_save_folder_path must be absolute path!"));
+        if !parsed.remote_sync_root.starts_with("/") {
+            return Err(format!("remote_sync_root must be absolute path!"));
+        }
+
+        if parsed.remote_sync_root.ends_with("/") {
+            return Err(format!("remote_sync_root must not end with /"));
+        }
+
+        if parsed
+            .sync_config_folder_path
+            .as_ref()
+            .is_some_and(|x| !Path::new(&x).exists())
+        {
+            return Err(format!("Provided sync_config_folder_path does not exist!"));
+        }
+
+        if parsed
+            .local_head_folder
+            .as_ref()
+            .is_some_and(|x| !Path::new(&x).exists())
+        {
+            return Err(format!("Provided local_head_folder does not exist!"));
         }
 
         Ok(Some(parsed))

@@ -14,6 +14,6 @@ pub fn get_test_global_config() -> GlobalSaveOptionsJson {
     return GlobalSaveOptionsJson {
         ssh_host: "testuser@localhost".to_string(),
         ssh_port: Some(2222),
-        remote_save_folder_path: REMOTE_CONTAINER_INTERNAL_SAVE_FOLDER_PATH.to_string(),
+        remote_sync_root: REMOTE_CONTAINER_INTERNAL_SAVE_FOLDER_PATH.to_string(),
     };
 }
