@@ -1,68 +1,80 @@
+use std::{fs, path::PathBuf};
+
 use super::*;
-use crate::tests_common::reset_remote::reset_remote_repository;
-use local_cloud_game_sync::config::LocalSaveOptionsJson;
+use crate::tests_common::{
+    common::{
+        REMOTE_CONTAINER_INTERNAL_ROOT_FOLDER_PATH, TEST_SSH_HOST, TEST_SSH_PORT,
+        TEST_SYNC_FOLDER_DATA_PATH_1, TESTING_RESOURCES_ROOT,
+    },
+    utils::copy_dir_all,
+};
 
 pub struct TestSyncClientBuilder {
-    empty_remote: bool,
+    client_name: Option<String>,
     sync_key: Option<String>,
-    local_save_folder: Option<TestTempFolder>,
-    ignore_globs: Vec<String>,
+    starting_save_folder: Option<PathBuf>,
 }
 
 impl TestSyncClientBuilder {
     pub fn new() -> Self {
         Self {
-            empty_remote: false,
+            client_name: None,
             sync_key: None,
-            local_save_folder: None,
-            ignore_globs: vec![],
+            starting_save_folder: None,
         }
     }
 
-    pub fn with_empty_remote(mut self) -> Self {
-        self.empty_remote = true;
+    pub fn with_client_name(mut self, name: impl Into<String>) -> Self {
+        self.client_name = Some(name.into());
         self
     }
 
     pub fn with_sync_key(mut self, key: impl Into<String>) -> Self {
-        let keystring: String = key.into();
-        assert!(
-            keystring.starts_with("__"),
-            "test key must begin with __ to avoid conflicts with real user configs!"
-        );
-        self.sync_key = Some(keystring);
+        self.sync_key = Some(key.into());
         self
     }
 
     pub fn with_local_test_folder1(mut self) -> Self {
-        self.local_save_folder = Some(TestTempFolder::with_test_local_folder1());
+        self.starting_save_folder = Some(Path::new(TEST_SYNC_FOLDER_DATA_PATH_1).to_path_buf());
         self
     }
 
-    // pub fn with_ignore_globs(mut self, globs: Vec<String>) -> Self {
-    //     self.ignore_globs = globs;
-    //     self
-    // }
-
     pub fn build(self) -> TestSyncClient {
-        let sync_key = self.sync_key.expect("sync_key is required");
-        let globalcfg = TempGlobalConfig::get_global_config();
-        let local_save_folder = self.local_save_folder.expect("save folder is required");
-        let cfg = TempLocalConfig::from_config(LocalSaveOptionsJson {
-            remote_sync_key: sync_key.clone(),
-            save_folder_path: local_save_folder.path.to_str().unwrap().to_string(),
-            save_ignore_glob: self.ignore_globs,
-        });
+        let key = self.sync_key.expect("No sync_key provided for test client");
+        let client_name = self
+            .client_name
+            .expect("No client name provided - provide a differentiator between clients");
 
-        // Build side effects
-        if self.empty_remote {
-            reset_remote_repository();
-        }
+        // Create client root folder
+        let client_root = Path::new(TESTING_RESOURCES_ROOT).join(client_name);
+        fs::create_dir(&client_root).expect("Unable to create test client root folder");
+
+        // Create head folder
+        let head_folder = client_root.join("local_head");
+        fs::create_dir(&head_folder).expect("Unable to create test client local head folder");
+
+        // Create actual client local test data.
+        let client_save_folder = client_root.join("test_game_save_folder");
+        let src_start_save_folder = self
+            .starting_save_folder
+            .expect("No starting save folder provided for test client.");
+
+        copy_dir_all(&src_start_save_folder, &client_save_folder)
+            .expect("Unable to copy test save folder for sync client test");
+
+        let cfg = RuntimeSyncConfig {
+            ssh_host: TEST_SSH_HOST.to_string(),
+            ssh_port: TEST_SSH_PORT,
+            remote_sync_key: key,
+            remote_sync_root: REMOTE_CONTAINER_INTERNAL_ROOT_FOLDER_PATH.to_string(),
+            local_head_folder: head_folder,
+            local_save_folder: client_save_folder,
+            ignore_globset: GlobSet::empty(),
+        };
 
         TestSyncClient {
-            local_save_folder,
-            local_config: cfg,
-            _global_config: globalcfg,
+            config: cfg,
+            _client_folder: TestTempFolder::from_path(client_root), // will auto cleanup when client is out
         }
     }
 }

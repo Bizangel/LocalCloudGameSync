@@ -2,37 +2,45 @@ use local_cloud_game_sync::{
     config::config_commons::REMOTE_SAVES_FOLDER_NAME, local_head::read_local_head,
 };
 
-use crate::tests_common::utils::read_remote_head_test;
+use crate::tests_common::test_remote::TestRemote;
 
 use super::*;
 
 impl TestSyncClient {
-    pub fn assert_snapshot_count(&self, expected: usize) {
-        let snapshots = self.get_snapshots();
-        assert_eq!(snapshots.len(), expected, "Expected {} snapshots", expected);
-    }
-
-    pub fn assert_local_data_matches_remote_data(&self) {
+    pub fn assert_local_data_matches_remote_data(&self, remote: &TestRemote) {
         let local_hash = self.get_local_hash();
-        let remote_hash = self.get_remote_hash();
+        let remote_hash = remote.get_remote_hash(&self.config.remote_sync_key);
         assert_eq!(
             local_hash, remote_hash,
             "Local and remote hashes don't match"
         );
     }
 
-    pub fn assert_is_last_snapshot_restorable_and_matches_local_data(&self) {
+    pub fn assert_snapshot_count(&self, remote: &TestRemote, expected: usize) {
+        let snapshots = remote
+            .get_snapshots(&self.config.remote_sync_key)
+            .expect("Error reading snapshots from remote");
+        assert_eq!(snapshots.len(), expected, "Expected {} snapshots", expected);
+    }
+
+    pub fn assert_is_last_snapshot_restorable_and_matches_local_data(&self, remote: &TestRemote) {
         let local_hash = self.get_local_hash();
         self.assert_nth_snapshot_matches_hash(
             &local_hash,
+            &remote,
             0,
             "Local and restored snapshot hashes don't match",
         );
     }
 
-    pub fn assert_second_last_snapshot_is_restorable_and_matches_hash(&self, hash: &str) {
+    pub fn assert_second_last_snapshot_is_restorable_and_matches_hash(
+        &self,
+        remote: &TestRemote,
+        hash: &str,
+    ) {
         self.assert_nth_snapshot_matches_hash(
             hash,
+            &remote,
             1,
             "Second last snapshot hash and restored snapshot hashes don't match",
         );
@@ -41,25 +49,28 @@ impl TestSyncClient {
     pub fn assert_nth_snapshot_matches_hash(
         &self,
         expected_hash: &str,
+        remote: &TestRemote,
         reverse_chronological_snapshot_idx: usize,
         message: &str,
     ) {
-        let snapshots = self.get_snapshots();
+        let snapshots = remote
+            .get_snapshots(&self.config.remote_sync_key)
+            .expect("Failed to get remote snapshots");
         let snapshot_idx = snapshots.len() - reverse_chronological_snapshot_idx - 1;
         assert!(
             reverse_chronological_snapshot_idx < snapshots.len(),
             "Snapshot index out of bounds"
         );
 
-        let restored =
-            restore_restic_snapshot(&self.local_config.sync_key, &snapshots[snapshot_idx].id)
-                .expect("Failed to restore snapshot");
+        let restored = remote
+            .restore_restic_snapshot(&self.config.remote_sync_key, &snapshots[snapshot_idx].id)
+            .expect("Failed to restore snapshot");
 
         let restored_hash = tree_folder_hash(
             &restored
                 .path
                 .join(REMOTE_SAVES_FOLDER_NAME)
-                .join(&self.local_config.sync_key),
+                .join(&self.config.remote_sync_key),
             &GlobSet::empty(),
         )
         .expect("Failed to hash restored snapshot");
@@ -71,14 +82,15 @@ impl TestSyncClient {
         );
     }
 
-    pub fn assert_local_head_and_remote_head_matches_local_data(&self) {
+    pub fn assert_local_head_and_remote_head_matches_local_data(&self, remote: &TestRemote) {
         let local_hash = self.get_local_hash();
 
-        let local_head = read_local_head(&self.local_config.sync_key)
+        let local_head = read_local_head(&self.config)
             .expect("Unable to read local head")
             .expect("Expected non-empty local head");
 
-        let remote_head = read_remote_head_test(&self.local_config.sync_key)
+        let remote_head = remote
+            .read_remote_head(&self.config.remote_sync_key)
             .expect("Unable to read remote head")
             .expect("Expected non-empty remote head");
 
