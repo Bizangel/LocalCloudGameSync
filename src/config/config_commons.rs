@@ -1,4 +1,4 @@
-use crate::config::global_save_config::GlobalSaveOptionsJson;
+use crate::config::global_save_config::SyncOptionsJson;
 use crate::utils::get_steam_common;
 use crate::utils::get_steam_compatdata;
 
@@ -75,7 +75,7 @@ pub fn init_configs_folder() -> Result<PathBuf, String> {
         ));
     }
 
-    let placeholder_global_options = GlobalSaveOptionsJson {
+    let placeholder_global_options = SyncOptionsJson {
         ssh_host: String::from(""),
         ssh_port: Some(22),
         remote_sync_root: String::from(""),

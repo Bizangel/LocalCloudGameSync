@@ -1,6 +1,4 @@
-use crate::config::{
-    global_save_config::GlobalSaveOptionsJson, local_save_config::LocalSaveOptionsJson,
-};
+use crate::config::{global_save_config::SyncOptionsJson, local_save_config::LocalSaveOptionsJson};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use std::path::{Path, PathBuf};
 
@@ -21,7 +19,7 @@ pub fn load_and_validate_config(
     save_config_key: &str,
     global_config_override: Option<&Path>,
 ) -> Result<RuntimeSyncConfig, String> {
-    let globalconfig = GlobalSaveOptionsJson::get_global_config(global_config_override)?;
+    let globalconfig = SyncOptionsJson::get_global_config(global_config_override)?;
     let Some(globalconfig) = globalconfig else {
         return Err(format!(
             "Global config not found! Please run init-config command first."
