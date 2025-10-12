@@ -12,15 +12,15 @@ impl SyncOptionsJson {
         // 3. Validate remote_sync_root
         if self.remote_sync_root.is_empty() {
             return Err(format!(
-                "remote_sync_root key must not be empty in global config!"
+                "remoteSyncRoot key must not be empty in global config!"
             ));
         }
         if !self.remote_sync_root.starts_with("/") {
-            return Err(format!("remote_sync_root must be absolute path!"));
+            return Err(format!("remoteSyncRoot must be absolute path!"));
         }
 
         if self.remote_sync_root.ends_with("/") {
-            return Err(format!("remote_sync_root must not end with /"));
+            return Err(format!("remoteSyncRoot must not end with /"));
         }
 
         // 4. Validate local_head_folder
@@ -37,7 +37,7 @@ impl SyncOptionsJson {
                 ));
             }
             return Err(format!(
-                "Provided local_head_folder {} does not exist!",
+                "Provided localHeadFolder {} does not exist!",
                 local_head_folder.display()
             ));
         }
@@ -78,7 +78,7 @@ impl SyncEntry {
         let expanded_save_path = Path::new(expanded_save_path_str);
         if !expanded_save_path.exists() {
             return Err(format!(
-                "Invalid JSON configuration - remoteSyncKey given \"{}\" - must only contains [A-Za-z0-9_-]",
+                "Invalid JSON configuration - saveFolderPath given \"{}\" - does not exist! Verify location or Launch game first to create save folder location",
                 self.remote_sync_key
             ));
         }
