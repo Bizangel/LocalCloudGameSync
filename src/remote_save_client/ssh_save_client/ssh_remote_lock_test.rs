@@ -16,6 +16,7 @@ fn get_test_config() -> RuntimeSyncConfig {
         remote_sync_root: "/tmp/test-save".to_string(),
         local_save_folder: Path::new("").to_path_buf(),
         ignore_globset: GlobSet::empty(),
+        local_head_folder: Path::new("/tmp").to_path_buf(),
     };
 }
 

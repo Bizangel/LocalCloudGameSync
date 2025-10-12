@@ -1,6 +1,4 @@
-use std::path::Path;
-
-use crate::config::load_and_validate_config;
+use crate::config::RuntimeSyncConfig;
 use crate::local_head;
 use crate::remote_save_client::{RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::tree_folder_hash;
@@ -33,14 +31,13 @@ struct SyncStatusCheckInput<'a> {
 }
 
 pub fn check_sync_command(
-    save_config_key: &str,
+    sync_config: &RuntimeSyncConfig,
     short_flag: bool,
-    global_config_override: Option<&Path>,
 ) -> Result<CheckSyncResult, String> {
-    let config = load_and_validate_config(save_config_key, global_config_override)?;
-    let client = get_default_remote_save_client(&config);
-    let local_head = local_head::read_local_head(&config.remote_sync_key)?;
-    let current_head = tree_folder_hash(&config.local_save_folder, &config.ignore_globset)?;
+    let client = get_default_remote_save_client(&sync_config);
+    let local_head = local_head::read_local_head(&sync_config)?;
+    let current_head =
+        tree_folder_hash(&sync_config.local_save_folder, &sync_config.ignore_globset)?;
     let remote_head = client.get_remote_head()?;
 
     let check_res = determine_sync_status(&SyncStatusCheckInput {
@@ -71,7 +68,7 @@ pub fn check_sync_command(
         CheckSyncResult::RemoteEmpty => {
             println!(
                 "Remote is empty - no HEAD found for remote for key {}. Will upload local head.\nLocal: {} ",
-                config.remote_sync_key, current_head
+                sync_config.remote_sync_key, current_head
             )
         }
         CheckSyncResult::FastForwardLocal => {

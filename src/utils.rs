@@ -18,6 +18,18 @@ pub fn open_on_explorer(folder_path: &path::Path) -> io::Result<std::process::Ch
 }
 
 #[cfg(target_os = "linux")]
+pub fn open_file(file_path: &path::Path) -> io::Result<std::process::Child> {
+    Command::new("xdg-open").arg(file_path).spawn()
+}
+
+#[cfg(target_os = "windows")]
+pub fn open_file(folder_path: &path::Path) -> io::Result<std::process::Child> {
+    Command::new("cmd")
+        .args(["/C", "start", folder_path.to_str().unwrap()])
+        .spawn()?;
+}
+
+#[cfg(target_os = "linux")]
 pub fn get_steam_path() -> Result<PathBuf, String> {
     let home_dir = dirs::home_dir().ok_or("Could not get HOME dir to get steam path.")?;
     return Ok(home_dir.join(".local/share/Steam"));

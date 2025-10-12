@@ -4,44 +4,29 @@ use std::path::{Path, PathBuf};
 use globset::GlobSet;
 
 use crate::common::Revision;
-use crate::config::config_commons::DATA_DIR_NAME;
+use crate::config::RuntimeSyncConfig;
 use crate::tree_utils::tree_folder_hash;
 use crate::utils::get_unix_timestamp_secs;
 
-pub const LOCAL_UPLOADED_DIR_NAME: &str = "uploaded";
-
-fn get_uploaded_head_folder() -> Result<PathBuf, String> {
-    let base_dir = dirs::data_dir().ok_or("Could not determine data directory")?;
-    let configs_path = PathBuf::from(base_dir)
-        .join(DATA_DIR_NAME)
-        .join(LOCAL_UPLOADED_DIR_NAME);
-    Ok(configs_path)
+pub fn get_local_head_filepath(sync_config: &RuntimeSyncConfig) -> PathBuf {
+    return sync_config
+        .local_head_folder
+        .join(format!("{}.HEAD", &sync_config.remote_sync_key));
 }
 
-fn ensure_uploaded_head_folder_exists() -> Result<(), String> {
-    let folder = get_uploaded_head_folder()?;
-    if !folder.exists() {
-        fs::create_dir(folder).map_err(|e| format!("Error creating uploaded folder {e}"))?;
-    }
-
-    Ok(())
-}
-
-fn get_local_head_filepath(remote_sync_key: &str) -> Result<PathBuf, String> {
-    return Ok(get_uploaded_head_folder()?.join(format!("{remote_sync_key}.HEAD")));
-}
-
-pub fn write_local_head(remote_sync_key: &str, new_head: &Revision) -> Result<(), String> {
-    ensure_uploaded_head_folder_exists()?;
-    let local_head_path = get_local_head_filepath(remote_sync_key)?;
+pub fn write_local_head(
+    sync_config: &RuntimeSyncConfig,
+    new_head: &Revision,
+) -> Result<(), String> {
+    let local_head_path = get_local_head_filepath(sync_config);
 
     fs::write(local_head_path, new_head.serialize())
         .map_err(|e| format!("Unable to update local head hash\n{e}"))?;
     Ok(())
 }
 
-pub fn read_local_head(remote_sync_key: &str) -> Result<Option<Revision>, String> {
-    let local_head_path = get_local_head_filepath(remote_sync_key)?;
+pub fn read_local_head(sync_config: &RuntimeSyncConfig) -> Result<Option<Revision>, String> {
+    let local_head_path = get_local_head_filepath(sync_config);
     if !local_head_path.exists() {
         return Ok(None);
     }

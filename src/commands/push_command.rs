@@ -1,17 +1,13 @@
-use std::path::Path;
-
-use crate::config::load_and_validate_config;
+use crate::config::RuntimeSyncConfig;
 use crate::local_head::{generate_current_head, write_local_head};
 use crate::remote_save_client::{RemoteLock, RemoteSaveClient, get_default_remote_save_client};
 use crate::tree_utils::tree_folder_temp_copy;
 
 pub fn push_command(
-    save_config_key: &str,
-    push_if_head: Option<&str>,
-    global_config_override: Option<&Path>,
+    sync_config: &RuntimeSyncConfig,
+    pull_if_head: Option<&str>,
 ) -> Result<(), String> {
-    let config = load_and_validate_config(save_config_key, global_config_override)?;
-    let client = get_default_remote_save_client(&config);
+    let client = get_default_remote_save_client(&sync_config);
 
     // 1. Get remote lock
     let _lock = client.acquire_lock()?;
@@ -24,7 +20,7 @@ pub fn push_command(
     // 2. Get HEAD contents
     let remote_head = client.get_remote_head()?;
     // 2.1. Check if head matches as expected - if provided
-    if let Some(push_if_head) = push_if_head {
+    if let Some(push_if_head) = pull_if_head {
         let remote_head_hash: String = remote_head.clone().map(|x| x.hash).unwrap_or_default();
         if remote_head_hash != push_if_head {
             return Err(format!(
@@ -36,7 +32,8 @@ pub fn push_command(
     // 3. Get current hash - stop if remote already has same hash.
     // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.
     // Any decision handling logic should be handled by other commands.
-    let local_hash = generate_current_head(&config.local_save_folder, &config.ignore_globset)?;
+    let local_hash =
+        generate_current_head(&sync_config.local_save_folder, &sync_config.ignore_globset)?;
     if remote_head.clone().is_some_and(|head| head == local_hash) {
         println!("Remote is up-to-date found same HEAD: {local_hash}");
         return Ok(());
@@ -47,7 +44,7 @@ pub fn push_command(
         Some(head) => {
             println!(
                 "Found existing data for {} in remote - Triggering remote Snapshot",
-                config.remote_sync_key
+                sync_config.remote_sync_key
             );
             client.remote_snapshot()?;
             println!("Successfully snapshotted remote HEAD: {}", head);
@@ -58,12 +55,13 @@ pub fn push_command(
     };
 
     // 5. Actually push.
-    let temp_folder = tree_folder_temp_copy(&config.local_save_folder, &config.ignore_globset)?;
+    let temp_folder =
+        tree_folder_temp_copy(&sync_config.local_save_folder, &sync_config.ignore_globset)?;
     client.push(&temp_folder, &local_hash)?;
     println!("Pushed to remote new HEAD {local_hash} successfully!");
 
     // 6. Update local head
-    write_local_head(&config.remote_sync_key, &local_hash)?;
+    write_local_head(&sync_config, &local_hash)?;
     println!("Successfully updated local head");
 
     // 7. Perform snapshot again after update.

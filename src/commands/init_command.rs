@@ -1,10 +1,10 @@
-use crate::config::{get_global_sync_config_path, init_configs_folder};
+use crate::config::{default_sync_config_path, init_default_config};
 
 pub fn init_command() -> Result<(), String> {
-    let initted_folder = init_configs_folder()?;
+    let initted_folder = init_default_config()?;
     println!(
         "Initialized global config at: {} - Please ensure to fill out it's values",
-        get_global_sync_config_path()?.display()
+        default_sync_config_path()?.display()
     );
 
     println!("Initialized config folders at {}", initted_folder.display());
