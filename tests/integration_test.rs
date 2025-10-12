@@ -194,3 +194,45 @@ pub fn play_offline_come_back_internet() {
     client.assert_local_head_and_remote_head_matches_local_data(&remote);
     client.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
 }
+
+#[serial]
+#[test]
+pub fn play_offline_but_accidentally_played_on_other_device_hence_conflict() {
+    // Setup
+    let _remote = TestRemote::builder().with_empty_remote().build();
+    let mut client1 = TestSyncClient::builder()
+        .with_client_name("client1")
+        .with_sync_key("testKey")
+        .with_local_test_folder1()
+        .build();
+    client1.push().expect("Failed setup push");
+
+    let client2 = TestSyncClient::builder()
+        .with_client_name("client2")
+        .with_sync_key("testKey")
+        .with_empty_test_folder()
+        .build();
+
+    client2.pull().expect("Failed setup pull");
+    client1.check_sync().assert_up_to_date();
+    client2.check_sync().assert_up_to_date();
+
+    // Play offline on Client1
+    client1.config.ssh_host = "nonexistanthost".to_string();
+    client1.push().expect_err("Expected failure when pushing");
+
+    // plays anyways offline
+    client1.modify_stored_save();
+
+    // Played online on client2
+    client2.modify_stored_save(); // twice to ensure diff from above
+    client2.modify_stored_save();
+
+    // should be able to push cleanly - we're unaware of the offline plays of client1
+    client2.check_sync().assert_fast_forward_remote();
+    client2.push().expect("Unable to push");
+
+    // Back online
+    client1.config.ssh_host = TEST_SSH_HOST.to_string();
+    client1.check_sync().assert_conflict(); // can fast forward
+}
