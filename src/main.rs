@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process::ExitCode};
 
 use clap::{Parser, Subcommand};
-use local_cloud_game_sync::{commands, config::config_commons::load_config};
+use local_cloud_game_sync::{commands, config::config_commons::load_config, ui::ui_loop_main};
 
 const RED_ANSI_ESCAPE: &str = "\x1b[31m";
 const ANSI_RESET_ESCAPE: &str = "\x1b[0m";
@@ -58,6 +58,9 @@ enum Commands {
     OpenConfig,
     /// Ensures that the configs folder exists to start placing save sync configurations.
     InitConfig,
+
+    // Shows the UI for syncing
+    UI,
 }
 
 fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
@@ -76,6 +79,10 @@ fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
         }
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfig => commands::open_default_config_file(),
+        Commands::UI => {
+            let _ = ui_loop_main();
+            Ok(())
+        }
         Commands::Dryrun => Err(String::from("Dryrun isn't implemented yet!")),
     };
 
