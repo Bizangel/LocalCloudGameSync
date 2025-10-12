@@ -79,7 +79,7 @@ impl SyncEntry {
         if !expanded_save_path.exists() {
             return Err(format!(
                 "Invalid JSON configuration - saveFolderPath given \"{}\" - does not exist! Verify location or Launch game first to create save folder location",
-                self.remote_sync_key
+                expanded_save_path_str
             ));
         }
 
