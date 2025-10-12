@@ -40,6 +40,8 @@ pub fn pull_command(
         generate_current_head(&sync_config.local_save_folder, &sync_config.ignore_globset)?;
     if remote_head == local_hash {
         println!("Local is up-to-date found same HEAD: {local_hash}");
+        // Ensure head is up to date anyways. Maybe we reached that good new state manually
+        write_local_head(&sync_config, &remote_head)?;
         return Ok(());
     }
 
