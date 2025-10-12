@@ -26,7 +26,7 @@ pub fn open_file(file_path: &path::Path) -> io::Result<std::process::Child> {
 pub fn open_file(folder_path: &path::Path) -> io::Result<std::process::Child> {
     Command::new("cmd")
         .args(["/C", "start", folder_path.to_str().unwrap()])
-        .spawn()?;
+        .spawn()
 }
 
 #[cfg(target_os = "linux")]
