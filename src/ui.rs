@@ -1,3 +1,5 @@
+const MINIFIED_HTML_STR: &str = include_str!("../src-ui/dist/index.html");
+
 use tao::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
@@ -33,50 +35,13 @@ pub fn ui_loop_main() -> wry::Result<()> {
         fixed
     };
 
-    let html = r#"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Gamepad A Button Example</title>
-<style>
-  body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-  #status { font-size: 2em; color: green; }
-</style>
-</head>
-<body>
-<h1>Gamepad A Button Status</h1>
-<div id="status">Not Pressed</div>
-
-<script>
-let statusEl = document.getElementById('status');
-
-function updateGamepadStatus() {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    if (gamepads[0]) {
-        const aPressed = gamepads[0].buttons[0].pressed; // Button 0 is usually "A"
-        statusEl.textContent = aPressed ? "Pressed" : "Not Pressed";
-    }
-    requestAnimationFrame(updateGamepadStatus);
-}
-
-// Listen for gamepad connection
-window.addEventListener("gamepadconnected", (e) => {
-    console.log("Gamepad connected:", e.gamepad);
-    updateGamepadStatus();
-});
-</script>
-</body>
-</html>
-    "#;
-
     // Cross-platform webview build
     let builder = WebViewBuilder::new()
         .with_bounds(Rect {
             position: LogicalPosition::new(0, 0).into(),
             size: LogicalSize::new(800, 600).into(),
         })
-        .with_html(html);
+        .with_html(MINIFIED_HTML_STR);
 
     let webview = {
         #[cfg(any(
