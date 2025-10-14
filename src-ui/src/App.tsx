@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import './App.css'
+import { useGlobalRustEventListener } from './hooks/useGlobalRustEventListener'
 
 type IPCMessage = {
   command: string,
@@ -11,6 +12,9 @@ function postIPC(msg: IPCMessage) {
 }
 
 function App() {
+
+  useGlobalRustEventListener();
+
   let onbuttonclick = useCallback(() => {
     postIPC({ command: "sample-command", payload: ""})
   }, [])

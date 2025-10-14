@@ -17,7 +17,6 @@ pub fn handle_webview_event(req: Request<String>, event_proxy: &EventLoopProxy<U
 
     match ipc_req.command.as_str() {
         "sample-command" => {
-            println!("Received from rust!");
             let _ = event_proxy.send_event(UserEvent::SampleCommand);
         }
         _ => println!("Received unknown command from rust!"),
