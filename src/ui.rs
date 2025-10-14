@@ -55,17 +55,24 @@ pub fn ui_loop_main() -> wry::Result<()> {
         fixed
     };
 
-    let devtool_enabled = false;
+    let devtool_enabled;
     #[cfg(debug_assertions)]
     {
-        let devtool_enabled = true;
+        devtool_enabled = true;
     }
+    #[cfg(not(debug_assertions))]
+    {
+        devtool_enabled = false;
+    }
+
+    // Get initial size with proper DPI scaling
+    let initial_size = window.inner_size().to_logical::<f64>(window.scale_factor());
 
     // Cross-platform webview build
     let builder = WebViewBuilder::new()
         .with_bounds(Rect {
             position: LogicalPosition::new(0, 0).into(),
-            size: LogicalSize::new(800, 600).into(),
+            size: LogicalSize::new(initial_size.width, initial_size.height).into(),
         })
         .with_devtools(devtool_enabled)
         .with_html(MINIFIED_HTML_STR)
@@ -97,15 +104,30 @@ pub fn ui_loop_main() -> wry::Result<()> {
     };
 
     let webview = Rc::new(RefCell::new(webview));
-    use gtk::prelude::*;
 
-    let webview_clone = webview.clone();
-    fixed.connect_size_allocate(move |_, alloc| {
-        let _ = webview_clone.borrow().set_bounds(Rect {
-            position: LogicalPosition::new(0, 0).into(),
-            size: LogicalSize::new(alloc.width() as f64, alloc.height() as f64).into(),
+    // GTK-specific size allocation handler
+    #[cfg(not(any(
+        target_os = "windows",
+        target_os = "macos",
+        target_os = "ios",
+        target_os = "android"
+    )))]
+    {
+        use gtk::prelude::*;
+
+        let webview_clone = webview.clone();
+        let scale_factor = window.scale_factor();
+
+        fixed.connect_size_allocate(move |_, alloc| {
+            let physical_size =
+                tao::dpi::PhysicalSize::new(alloc.width() as u32, alloc.height() as u32);
+            let logical_size = physical_size.to_logical::<f64>(scale_factor);
+            let _ = webview_clone.borrow().set_bounds(Rect {
+                position: LogicalPosition::new(0, 0).into(),
+                size: LogicalSize::new(logical_size.width, logical_size.height).into(),
+            });
         });
-    });
+    }
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -113,11 +135,12 @@ pub fn ui_loop_main() -> wry::Result<()> {
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::Resized(new_size) => {
+                    let logical_size = new_size.to_logical::<f64>(window.scale_factor());
                     webview
                         .borrow()
                         .set_bounds(Rect {
                             position: LogicalPosition::new(0, 0).into(),
-                            size: LogicalSize::new(new_size.width, new_size.height).into(),
+                            size: LogicalSize::new(logical_size.width, logical_size.height).into(),
                         })
                         .unwrap();
                 }
@@ -125,7 +148,7 @@ pub fn ui_loop_main() -> wry::Result<()> {
                     let key = event.logical_key;
                     match key {
                         Key::Character("i") => {
-                            // webview.open_devtools();
+                            // webview.borrow().open_devtools();
                         }
                         _ => {}
                     }
