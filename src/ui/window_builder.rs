@@ -15,16 +15,18 @@ use wry::{
 
 const MINIFIED_HTML_STR: &str = include_str!("../../src-ui/dist/index.html");
 use crate::ui::common::{
-    UI_INITIAL_SIZE_HEIGHT_PX, UI_INITIAL_SIZE_WIDTH_PX, UI_TITLE_NAME, UserEvent,
+    UI_INITIAL_SIZE_HEIGHT_PX, UI_INITIAL_SIZE_WIDTH_PX, UI_TITLE_NAME, UIEvent,
 };
 
 pub fn build_window_with_webview<F>(
-    event_loop: &EventLoop<UserEvent>,
+    event_loop: &EventLoop<UIEvent>,
     webview_ipc_handler: F,
 ) -> (Window, Rc<RefCell<WebView>>)
 where
     F: Fn(Request<String>) + 'static,
 {
+    // This is some huge boilerplate that I have no idea how half of it works.
+    // best reference is: https://github.com/tauri-apps/wry/blob/dev/examples/gtk_multiwebview.rs
     let window = WindowBuilder::new()
         .with_title(UI_TITLE_NAME)
         .with_inner_size(tao::dpi::LogicalSize::new(
@@ -119,6 +121,7 @@ where
         }
     };
 
+    // TODO: review again same thing - do we need this refcell wrapping?
     let webview = Rc::new(RefCell::new(webview));
 
     // GTK-specific size allocation handler

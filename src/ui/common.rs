@@ -5,9 +5,19 @@ pub const VITE_DEV_LOCALHOST_URL: &str = "http://localhost:5173";
 use serde::Serialize;
 use wry::WebView;
 
+#[derive(Debug, Clone)]
+pub enum ResolveConflictChoice {
+    Push,
+    Pull,
+}
+
 // Events generated to be handled for the main loop
-pub enum UserEvent {
+pub enum UIEvent {
     SampleCommand,
+
+    SyncDoneEvent,
+
+    ConflictResolve { choice: ResolveConflictChoice },
 }
 
 // Events generated from rust code to be posted to the webview.

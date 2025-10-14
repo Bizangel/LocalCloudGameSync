@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, sync::mpsc::Sender, thread::JoinHandle};
 use wry::{
     Rect, WebView,
     dpi::{LogicalPosition, LogicalSize},
@@ -6,11 +6,15 @@ use wry::{
 
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
+use crate::ui::sync_thread::SyncThreadCommand;
+
 pub fn handle_window_event(
     event: &WindowEvent,
     control_flow: &mut ControlFlow,
     window: &Window,
     webview: &Rc<RefCell<WebView>>,
+    _sync_tx: &Sender<SyncThreadCommand>,
+    sync_thread_handle: &Rc<RefCell<Option<JoinHandle<()>>>>,
 ) {
     match event {
         WindowEvent::Resized(new_size) => {
@@ -37,7 +41,11 @@ pub fn handle_window_event(
         }
         WindowEvent::CloseRequested => {
             // If closing directly from window - it was a failure as sync probably didn't finish as expected.
-            // TODO: If performing sync disallow closing
+            // TODO: If performing sync disallow closing + handle errors gracefully
+            if let Some(handle) = sync_thread_handle.borrow_mut().take() {
+                let _ = handle.join(); // ignore error for now.
+            };
+
             *control_flow = ControlFlow::ExitWithCode(1);
         }
         _ => {}

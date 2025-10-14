@@ -19,6 +19,10 @@ function App() {
     postIPC({ command: "sample-command", payload: ""})
   }, [])
 
+  let conflictresolve = useCallback(() => {
+    postIPC({ command: "sample-conflict-resolve", payload: ""})
+  }, [])
+
   return (
     <div className='container'>
       <div className='centered-display'>
@@ -27,6 +31,10 @@ function App() {
 
       <button onClick={onbuttonclick}>
         click me
+      </button>
+
+      <button onClick={conflictresolve}>
+        resolve with pull
       </button>
       </div>
   )
