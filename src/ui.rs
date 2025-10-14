@@ -1,13 +1,13 @@
 const MINIFIED_HTML_STR: &str = include_str!("../src-ui/dist/index.html");
 
 use std::{cell::RefCell, rc::Rc};
-
 use tao::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoopBuilder},
     keyboard::Key,
     window::WindowBuilder,
 };
+use wry::http::{Response, header::CONTENT_TYPE};
 use wry::{
     Rect, WebViewBuilder,
     dpi::{LogicalPosition, LogicalSize},
@@ -35,6 +35,7 @@ pub fn ui_loop_main() -> wry::Result<()> {
     let window = WindowBuilder::new()
         .with_title("Wry Minimal Tao")
         .with_inner_size(tao::dpi::LogicalSize::new(800.0, 600.0))
+        .with_resizable(true)
         .build(&event_loop)
         .expect("Failed to create window");
 
@@ -75,7 +76,23 @@ pub fn ui_loop_main() -> wry::Result<()> {
             size: LogicalSize::new(initial_size.width, initial_size.height).into(),
         })
         .with_devtools(devtool_enabled)
-        .with_html(MINIFIED_HTML_STR)
+        .with_custom_protocol("app".into(), move |_, request| {
+            let path = request.uri().path();
+
+            if path == "/" || path == "/index.html" {
+                Response::builder()
+                    .header(CONTENT_TYPE, "text/html")
+                    .body(MINIFIED_HTML_STR.as_bytes().into())
+                    .unwrap()
+            } else {
+                Response::builder()
+                    .status(404)
+                    .body(Vec::new().into())
+                    .unwrap()
+            }
+        })
+        .with_url("app://localhost/") // Load from custom protocol
+        // .with_html(MINIFIED_HTML_STR)
         .with_ipc_handler(handler);
 
     let webview = {
@@ -148,7 +165,7 @@ pub fn ui_loop_main() -> wry::Result<()> {
                     let key = event.logical_key;
                     match key {
                         Key::Character("i") => {
-                            // webview.borrow().open_devtools();
+                            webview.borrow().open_devtools();
                         }
                         _ => {}
                     }
