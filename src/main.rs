@@ -1,7 +1,9 @@
 use std::{path::PathBuf, process::ExitCode};
 
 use clap::{Parser, Subcommand};
-use local_cloud_game_sync::{commands, config::config_commons::load_config, ui::ui_loop_main};
+use local_cloud_game_sync::{
+    commands, config::config_commons::load_config, ui::ui_loop_main::ui_loop_main,
+};
 
 const RED_ANSI_ESCAPE: &str = "\x1b[31m";
 const ANSI_RESET_ESCAPE: &str = "\x1b[0m";
@@ -80,7 +82,7 @@ fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfig => commands::open_default_config_file(),
         Commands::UI => {
-            let _ = ui_loop_main();
+            let _ = ui_loop_main(); // UI code takes from here - so returns don't matter.
             Ok(())
         }
         Commands::Dryrun => Err(String::from("Dryrun isn't implemented yet!")),

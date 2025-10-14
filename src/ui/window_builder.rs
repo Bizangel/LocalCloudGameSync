@@ -1,40 +1,36 @@
-const MINIFIED_HTML_STR: &str = include_str!("../src-ui/dist/index.html");
-
 use std::{cell::RefCell, rc::Rc};
 use tao::{
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoopBuilder},
-    keyboard::Key,
-    window::WindowBuilder,
+    event_loop::EventLoop,
+    window::{Window, WindowBuilder},
 };
-use wry::http::{Response, header::CONTENT_TYPE};
 use wry::{
     Rect, WebViewBuilder,
     dpi::{LogicalPosition, LogicalSize},
     http::Request,
 };
+use wry::{
+    WebView,
+    http::{Response, header::CONTENT_TYPE},
+};
 
-enum UserEvent {
-    SampleCommand,
-}
+const MINIFIED_HTML_STR: &str = include_str!("../../src-ui/dist/index.html");
+use crate::ui::common::{
+    UI_INITIAL_SIZE_HEIGHT_PX, UI_INITIAL_SIZE_WIDTH_PX, UI_TITLE_NAME, UserEvent,
+};
 
-pub fn ui_loop_main() -> wry::Result<()> {
-    let event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();
-    let event_proxy = event_loop.create_proxy();
-
-    let handler = move |req: Request<String>| {
-        let body = req.body();
-        match body.as_str() {
-            "sample-command" => {
-                let _ = event_proxy.send_event(UserEvent::SampleCommand);
-            }
-            _ => {}
-        }
-    };
-
+pub fn build_window_with_webview<F>(
+    event_loop: &EventLoop<UserEvent>,
+    webview_ipc_handler: F,
+) -> (Window, Rc<RefCell<WebView>>)
+where
+    F: Fn(Request<String>) + 'static,
+{
     let window = WindowBuilder::new()
-        .with_title("Wry Minimal Tao")
-        .with_inner_size(tao::dpi::LogicalSize::new(800.0, 600.0))
+        .with_title(UI_TITLE_NAME)
+        .with_inner_size(tao::dpi::LogicalSize::new(
+            UI_INITIAL_SIZE_WIDTH_PX,
+            UI_INITIAL_SIZE_HEIGHT_PX,
+        ))
         .with_resizable(true)
         .build(&event_loop)
         .expect("Failed to create window");
@@ -60,8 +56,9 @@ pub fn ui_loop_main() -> wry::Result<()> {
     let app_url;
     #[cfg(debug_assertions)]
     {
+        use crate::ui::common::VITE_DEV_LOCALHOST_URL;
         devtool_enabled = true;
-        app_url = "http://localhost:5173"
+        app_url = VITE_DEV_LOCALHOST_URL;
     }
     #[cfg(not(debug_assertions))]
     {
@@ -95,7 +92,7 @@ pub fn ui_loop_main() -> wry::Result<()> {
             }
         })
         .with_url(app_url) // Load from custom protocol
-        .with_ipc_handler(handler);
+        .with_ipc_handler(webview_ipc_handler);
 
     let webview = {
         #[cfg(any(
@@ -148,48 +145,5 @@ pub fn ui_loop_main() -> wry::Result<()> {
         });
     }
 
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
-
-        match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::Resized(new_size) => {
-                    let logical_size = new_size.to_logical::<f64>(window.scale_factor());
-                    webview
-                        .borrow()
-                        .set_bounds(Rect {
-                            position: LogicalPosition::new(0, 0).into(),
-                            size: LogicalSize::new(logical_size.width, logical_size.height).into(),
-                        })
-                        .unwrap();
-                }
-                WindowEvent::KeyboardInput { event, .. } => {
-                    let key = event.logical_key;
-                    match key {
-                        Key::Character("i") => {
-                            #[cfg(debug_assertions)]
-                            {
-                                webview.borrow().open_devtools();
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-                WindowEvent::CloseRequested => {
-                    *control_flow = ControlFlow::Exit;
-                }
-                _ => {}
-            },
-            Event::UserEvent(event) => match event {
-                UserEvent::SampleCommand => {
-                    println!("Sample Command");
-                    webview
-                        .borrow()
-                        .evaluate_script("console.log(\"hello\")")
-                        .unwrap();
-                }
-            },
-            _ => {}
-        }
-    });
+    return (window, webview);
 }
