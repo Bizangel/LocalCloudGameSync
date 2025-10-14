@@ -4,5 +4,11 @@ import { viteSingleFile } from "vite-plugin-singlefile"
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react(), viteSingleFile()],
+  build: {
+    assetsInlineLimit: 0,
+    cssCodeSplit: false,
+    modulePreload: false
+  }
 })
