@@ -57,13 +57,16 @@ pub fn ui_loop_main() -> wry::Result<()> {
     };
 
     let devtool_enabled;
+    let app_url;
     #[cfg(debug_assertions)]
     {
         devtool_enabled = true;
+        app_url = "http://localhost:5173"
     }
     #[cfg(not(debug_assertions))]
     {
         devtool_enabled = false;
+        app_url = "app://localhost"
     }
 
     // Get initial size with proper DPI scaling
@@ -91,8 +94,7 @@ pub fn ui_loop_main() -> wry::Result<()> {
                     .unwrap()
             }
         })
-        .with_url("app://localhost/") // Load from custom protocol
-        // .with_html(MINIFIED_HTML_STR)
+        .with_url(app_url) // Load from custom protocol
         .with_ipc_handler(handler);
 
     let webview = {
@@ -165,7 +167,10 @@ pub fn ui_loop_main() -> wry::Result<()> {
                     let key = event.logical_key;
                     match key {
                         Key::Character("i") => {
-                            webview.borrow().open_devtools();
+                            #[cfg(debug_assertions)]
+                            {
+                                webview.borrow().open_devtools();
+                            }
                         }
                         _ => {}
                     }
