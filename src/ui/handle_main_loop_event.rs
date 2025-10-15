@@ -1,5 +1,5 @@
 use crate::ui::{
-    common::{RustWebViewEvent, UIEvent, send_event_to_webview},
+    common::{UIEvent, WebViewEvent, send_event_to_webview},
     handle_window_event::handle_window_event,
     sync_thread::SyncThreadCommand,
 };
@@ -14,7 +14,7 @@ pub fn handle_main_loop_event(
     webview: &Rc<RefCell<WebView>>,
     window: &Window,
     sync_tx: &Sender<SyncThreadCommand>,
-    sync_thread_handle: &Rc<RefCell<Option<JoinHandle<()>>>>,
+    sync_thread_handle: &RefCell<Option<JoinHandle<()>>>,
 ) {
     match event {
         Event::WindowEvent { event, .. } => handle_window_event(
@@ -30,16 +30,14 @@ pub fn handle_main_loop_event(
                 println!("Sample Command");
 
                 // return to js
-                let replyevent = RustWebViewEvent::SampleWebviewUpdate {
+                let replyevent = WebViewEvent::WebViewUpdate {
                     displaystring: "samplestring".to_string(),
                 };
                 send_event_to_webview(&webview.borrow(), &replyevent);
             }
             UIEvent::SyncDoneEvent => {
                 // successfully exit
-                if let Some(handle) = sync_thread_handle.borrow_mut().take() {
-                    let _ = handle.join(); // TODO: Attempt to handle errors gracefully.
-                };
+                sync_thread_handle.borrow_mut().take().map(|t| t.join());
                 *control_flow = ControlFlow::Exit; // exit code 0
             }
             UIEvent::ConflictResolve { choice } => {

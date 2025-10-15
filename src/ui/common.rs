@@ -22,11 +22,11 @@ pub enum UIEvent {
 
 // Events generated from rust code to be posted to the webview.
 #[derive(Serialize)]
-pub enum RustWebViewEvent {
-    SampleWebviewUpdate { displaystring: String },
+pub enum WebViewEvent {
+    WebViewUpdate { displaystring: String },
 }
 
-pub fn send_event_to_webview(webview: &WebView, ev: &RustWebViewEvent) {
+pub fn send_event_to_webview(webview: &WebView, ev: &WebViewEvent) {
     let Ok(evpayload) = serde_json::to_string(&ev) else {
         return;
     };

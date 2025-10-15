@@ -121,7 +121,6 @@ where
         }
     };
 
-    // TODO: review again same thing - do we need this refcell wrapping?
     let webview = Rc::new(RefCell::new(webview));
 
     // GTK-specific size allocation handler

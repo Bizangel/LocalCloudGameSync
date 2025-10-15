@@ -14,7 +14,7 @@ pub fn handle_window_event(
     window: &Window,
     webview: &Rc<RefCell<WebView>>,
     _sync_tx: &Sender<SyncThreadCommand>,
-    sync_thread_handle: &Rc<RefCell<Option<JoinHandle<()>>>>,
+    sync_thread_handle: &RefCell<Option<JoinHandle<()>>>,
 ) {
     match event {
         WindowEvent::Resized(new_size) => {
@@ -41,11 +41,17 @@ pub fn handle_window_event(
         }
         WindowEvent::CloseRequested => {
             // If closing directly from window - it was a failure as sync probably didn't finish as expected.
-            // TODO: If performing sync disallow closing + handle errors gracefully
-            if let Some(handle) = sync_thread_handle.borrow_mut().take() {
-                let _ = handle.join(); // ignore error for now.
-            };
+            let finished = sync_thread_handle
+                .borrow()
+                .as_ref()
+                .is_some_and(|t| t.is_finished());
 
+            if !finished {
+                // Disallow closing if sync isn't finished
+                return;
+            }
+
+            sync_thread_handle.borrow_mut().take().map(|t| t.join());
             *control_flow = ControlFlow::ExitWithCode(1);
         }
         _ => {}

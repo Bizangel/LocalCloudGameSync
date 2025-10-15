@@ -1,6 +1,5 @@
 use std::{
     cell::RefCell,
-    rc::Rc,
     sync::mpsc::{self, Receiver, Sender},
 };
 
@@ -32,9 +31,7 @@ pub fn ui_loop_main() -> Result<(), String> {
     let sync_thread_handle = std::thread::spawn(move || {
         sync_thread(sync_thread_event_proxy, sync_rx);
     });
-    // TODO: Review do we need all these refcell wrappings?
-    let sync_thread_handle = Rc::new(RefCell::new(Some(sync_thread_handle)));
-    let sync_thread_handle_clone = sync_thread_handle.clone();
+    let sync_thread_handle = RefCell::new(Some(sync_thread_handle));
 
     event_loop.run(move |event, _, control_flow| {
         handle_main_loop_event(
@@ -43,7 +40,7 @@ pub fn ui_loop_main() -> Result<(), String> {
             &webview,
             &window,
             &sync_tx,
-            &sync_thread_handle_clone,
+            &sync_thread_handle,
         );
     });
 }
