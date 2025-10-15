@@ -27,9 +27,14 @@ pub enum SyncThreadCommand {
     ResolveConflict { choice: ResolveConflictChoice },
 }
 
-fn send_ui_display_update(ui_proxy: &EventLoopProxy<UIEvent>, display_text: impl Into<String>) {
+fn send_ui_display_update(
+    ui_proxy: &EventLoopProxy<UIEvent>,
+    titletext: impl Into<String>,
+    subtext: impl Into<String>,
+) {
     let req = UIEvent::WebViewUpdateRequest {
-        display_text: display_text.into(),
+        title_text: titletext.into(),
+        sub_text: subtext.into(),
     };
     let _ = ui_proxy.send_event(req);
 }
@@ -42,31 +47,38 @@ pub fn do_sync(
     // Await for UI.
     block_until(&sync_rx, |cmd| matches!(cmd, SyncThreadCommand::UIReady));
 
-    send_ui_display_update(&ui_proxy, "Checking remote...");
+    let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
+    send_ui_display_update(&ui_proxy, &main_sync, "Checking remote...");
 
     let check_sync_result = check_sync_command(&sync_config, false)?;
 
     match check_sync_result {
         CheckSyncResult::UpToDate => {
-            send_ui_display_update(&ui_proxy, "Local is up to date!");
+            send_ui_display_update(&ui_proxy, &main_sync, "Local is up to date!");
             return Ok(());
         }
         CheckSyncResult::FastForwardLocal => {
             send_ui_display_update(
                 &ui_proxy,
+                &main_sync,
                 "Newer version on remote found! Pulling from remote...",
             );
             // TODO: take action
             return Ok(());
         }
         CheckSyncResult::FastForwardRemote => {
-            send_ui_display_update(&ui_proxy, "Local changes found - saving to remote...");
+            send_ui_display_update(
+                &ui_proxy,
+                &main_sync,
+                "Local changes found - saving to remote...",
+            );
             // TODO: take action
             return Ok(());
         }
         CheckSyncResult::RemoteEmpty => {
             send_ui_display_update(
                 &ui_proxy,
+                &main_sync,
                 format!(
                     "Remote for key {} empty! Do you wish to push to initialize remote!",
                     &sync_config.remote_sync_key
@@ -78,7 +90,11 @@ pub fn do_sync(
             return Ok(());
         }
         CheckSyncResult::Conflict => {
-            send_ui_display_update(&ui_proxy, format!("Conflict found for key! Found: "));
+            send_ui_display_update(
+                &ui_proxy,
+                &main_sync,
+                format!("Conflict found for key! Found: "),
+            );
 
             // await until resolve
             // let x = block_until(&sync_rx, |cmd| {
@@ -107,7 +123,7 @@ pub fn sync_thread_main(
         }
         Err(e) => {
             // Error send error
-            send_ui_display_update(&ui_proxy, format!("Error: {}", e));
+            send_ui_display_update(&ui_proxy, "Error Syncing", format!("Error: {}", e));
         }
     }
 }

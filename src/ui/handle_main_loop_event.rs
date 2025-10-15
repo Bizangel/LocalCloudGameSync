@@ -33,17 +33,23 @@ pub fn handle_main_loop_event(
             UIEvent::SyncSuccessCompletedEvent => {
                 // successfully exit
                 sync_thread_handle.borrow_mut().take().map(|t| t.join());
-                *control_flow = ControlFlow::Exit; // exit code 0
+                // *control_flow = ControlFlow::Exit; // exit code 0
             }
             UIEvent::ConflictResolve { choice } => {
                 // send to sync thread
                 let _ = sync_tx.send(SyncThreadCommand::ResolveConflict { choice });
             }
-            UIEvent::WebViewUpdateRequest { display_text } => {
+            UIEvent::WebViewUpdateRequest {
+                title_text,
+                sub_text,
+            } => {
                 // Forward it to webview
                 send_event_to_webview(
                     &webview.borrow(),
-                    &WebViewEvent::WebViewUpdate { display_text },
+                    &WebViewEvent::WebViewUpdate {
+                        title_text,
+                        sub_text,
+                    },
                 );
             }
         },

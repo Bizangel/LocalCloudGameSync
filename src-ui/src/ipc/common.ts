@@ -27,7 +27,8 @@ export const IPC = {
 /// Types from Rust
 
 export type WebViewUpdateEvent = {
-  display_text: string
+  title_text: string,
+  sub_text: string
 }
 
 export type WebViewEvent = | { WebViewUpdate: WebViewUpdateEvent };

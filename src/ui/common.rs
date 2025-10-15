@@ -52,15 +52,23 @@ impl FromStr for WebViewRequestType {
 pub enum UIEvent {
     WebViewReady,
     SyncSuccessCompletedEvent,
-    WebViewUpdateRequest { display_text: String },
+    WebViewUpdateRequest {
+        title_text: String,
+        sub_text: String,
+    },
 
-    ConflictResolve { choice: ResolveConflictChoice },
+    ConflictResolve {
+        choice: ResolveConflictChoice,
+    },
 }
 
 // Events generated from rust code to be posted to the webview.
 #[derive(Serialize)]
 pub enum WebViewEvent {
-    WebViewUpdate { display_text: String },
+    WebViewUpdate {
+        title_text: String,
+        sub_text: String,
+    },
 }
 
 pub fn send_event_to_webview(webview: &WebView, ev: &WebViewEvent) {
