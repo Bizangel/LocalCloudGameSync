@@ -1,5 +1,5 @@
 use crate::{
-    commands::{CheckSyncResult, check_sync_command, pull_command},
+    commands::{CheckSyncResult, check_sync_command, pull_command_with_update_callback},
     config::RuntimeSyncConfig,
     ui::common::{ResolveConflictChoice, UIEvent},
 };
@@ -61,11 +61,17 @@ pub fn do_sync(
             send_ui_display_update(
                 &ui_proxy,
                 &main_sync,
-                "Newer version on remote found! Pulling from remote...",
+                "Newer version on remote found! Downloading from remote...",
             );
-            // TODO: take action
 
-            // pull_command(sync_config, push_if_head)
+            let pull_title = format!("Downloading {} save files", sync_config.remote_sync_key);
+            pull_command_with_update_callback(
+                sync_config,
+                remote_head.as_ref().map(|head| head.hash.as_str()),
+                |txt| {
+                    send_ui_display_update(&ui_proxy, &pull_title, &txt);
+                },
+            )?;
 
             return Ok(());
         }
@@ -120,8 +126,8 @@ pub fn sync_thread_main(
     match do_sync(&sync_config, &ui_proxy, &sync_rx) {
         Ok(_) => {
             // We're done - let UI thread exit with success
-            // wait 2 seconds so user can read
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            // wait 1 second so user can read - it gives nice feeling maybe remove it later?
+            std::thread::sleep(std::time::Duration::from_secs(1));
             let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
         }
         Err(e) => {
