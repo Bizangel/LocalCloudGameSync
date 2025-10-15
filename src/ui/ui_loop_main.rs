@@ -6,15 +6,18 @@ use std::{
 use tao::event_loop::EventLoopBuilder;
 use wry::http::Request;
 
-use crate::ui::{
-    common::UIEvent,
-    handle_main_loop_event::handle_main_loop_event,
-    handle_webview_event::handle_webview_event,
-    sync_thread::{SyncThreadCommand, sync_thread},
-    window_builder::build_window_with_webview,
+use crate::{
+    config::RuntimeSyncConfig,
+    ui::{
+        common::UIEvent,
+        handle_main_loop_event::handle_main_loop_event,
+        handle_webview_event::handle_webview_event,
+        sync_thread::{SyncThreadCommand, sync_thread_main},
+        window_builder::build_window_with_webview,
+    },
 };
 
-pub fn ui_loop_main() -> Result<(), String> {
+pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
     let event_loop = EventLoopBuilder::<UIEvent>::with_user_event().build();
     let event_proxy = event_loop.create_proxy();
     let sync_thread_event_proxy = event_proxy.clone();
@@ -29,7 +32,7 @@ pub fn ui_loop_main() -> Result<(), String> {
 
     // Spawn actual sync thread
     let sync_thread_handle = std::thread::spawn(move || {
-        sync_thread(sync_thread_event_proxy, sync_rx);
+        sync_thread_main(sync_config, sync_thread_event_proxy, sync_rx);
     });
     let sync_thread_handle = RefCell::new(Some(sync_thread_handle));
 

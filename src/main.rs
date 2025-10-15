@@ -60,9 +60,10 @@ enum Commands {
     OpenConfig,
     /// Ensures that the configs folder exists to start placing save sync configurations.
     InitConfig,
-
-    // Shows the UI for syncing
-    UI,
+    // Performs the bi-directional sync-process for the given key - with a helper UI to resolve sync conflicts.
+    UI {
+        sync_key: String,
+    },
 }
 
 fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
@@ -81,8 +82,9 @@ fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
         }
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfig => commands::open_default_config_file(),
-        Commands::UI => {
-            let _ = ui_loop_main(); // UI code takes from here - so returns don't matter.
+        Commands::UI { sync_key } => {
+            let sync_config = load_config(&sync_key, args.config.as_deref())?;
+            let _ = ui_loop_main(sync_config); // UI code takes from here - so returns don't matter.
             Ok(())
         }
         Commands::Dryrun => Err(String::from("Dryrun isn't implemented yet!")),
