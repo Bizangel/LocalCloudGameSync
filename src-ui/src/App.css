@@ -7,26 +7,71 @@
 body {
   width: 100vw;
   height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #121212;
+  color: #ffffff;
 }
 
 .container {
   width: 100vw;
   height: 100vh;
-
   display: flex;
-
   justify-content: center;
   align-items: center;
 }
 
-.centered-display {
-  background-color: red;
-  width: 100px;
-  height: 100px;
+.loading-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
+.spinner {
+  border: 6px solid #2c2c2c;
+  /* dark grey background */
+  border-top: 6px solid #3498db;
+  /* soft blue accent */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
 
-#root {
-  width: 100vw;
-  height: 100vh;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+p {
+  font-size: 16px;
+  color: #b0b0b0;
+}
+
+.fade-text {
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
