@@ -132,7 +132,7 @@ pub fn sync_thread_main(
         }
         Err(e) => {
             // Error send error
-            send_ui_display_update(&ui_proxy, "Error Syncing", format!("Error: {}", e));
+            send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
         }
     }
 }
