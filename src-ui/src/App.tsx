@@ -1,26 +1,13 @@
 import { useCallback } from 'react'
 import './App.css'
 import { useGlobalRustEventListener } from './hooks/useGlobalRustEventListener'
-
-type IPCMessage = {
-  command: string,
-  payload: any,
-}
-
-function postIPC(msg: IPCMessage) {
-  window.ipc.postMessage(JSON.stringify(msg))
-}
+import { IPC } from './ipc/common';
 
 function App() {
-
   useGlobalRustEventListener();
 
-  let onbuttonclick = useCallback(() => {
-    postIPC({ command: "sample-command", payload: ""})
-  }, [])
-
   let conflictresolve = useCallback(() => {
-    postIPC({ command: "sample-conflict-resolve", payload: ""})
+    IPC.sendResolveConflict("push");
   }, [])
 
   return (
@@ -29,9 +16,6 @@ function App() {
 
       </div>
 
-      <button onClick={onbuttonclick}>
-        click me
-      </button>
 
       <button onClick={conflictresolve}>
         resolve with pull

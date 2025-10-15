@@ -1,4 +1,5 @@
 import { useEffect } from "react"
+import { IPC } from "../ipc/common"
 
 export const useGlobalRustEventListener = () => {
     useEffect(() => {
@@ -7,6 +8,7 @@ export const useGlobalRustEventListener = () => {
         }
 
         window.addEventListener("message", listener);
+        IPC.sendWebViewReady();
         return () => {
             window.removeEventListener("message", listener);
         }

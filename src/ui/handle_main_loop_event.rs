@@ -26,14 +26,9 @@ pub fn handle_main_loop_event(
             sync_thread_handle,
         ),
         Event::UserEvent(event) => match event {
-            UIEvent::SampleCommand => {
-                println!("Sample Command");
-
-                // return to js
-                let replyevent = WebViewEvent::WebViewUpdate {
-                    displaystring: "samplestring".to_string(),
-                };
-                send_event_to_webview(&webview.borrow(), &replyevent);
+            UIEvent::WebViewReady => {
+                // notify sync thread so it can start working.
+                let _ = sync_tx.send(SyncThreadCommand::UIReady);
             }
             UIEvent::SyncDoneEvent => {
                 // successfully exit
