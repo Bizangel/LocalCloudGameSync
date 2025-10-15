@@ -1,6 +1,6 @@
 
-const IPCRequests = ["webview-ready", "resolve-conflict"] as const;
-type IPCRequest = typeof IPCRequests[number];
+const _IPCRequests = ["webview-ready", "resolve-conflict"] as const;
+type IPCRequest = typeof _IPCRequests[number];
 
 type ResolveConflictType = "pull" | "push";
 
@@ -22,4 +22,13 @@ export const IPC = {
     _postIPC({ request: "resolve-conflict", body: choice});
   }
 };
+
+
+/// Types from Rust
+
+export type WebViewUpdateEvent = {
+  display_text: string
+}
+
+export type WebViewEvent = | { WebViewUpdate: WebViewUpdateEvent };
 

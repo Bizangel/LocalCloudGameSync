@@ -6,7 +6,7 @@ use wry::{
 
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
-use crate::ui::sync_thread::SyncThreadCommand;
+use crate::ui::{common::WebViewEvent, sync_thread::SyncThreadCommand};
 
 pub fn handle_window_event(
     event: &WindowEvent,
@@ -34,6 +34,18 @@ pub fn handle_window_event(
                     #[cfg(debug_assertions)]
                     {
                         webview.borrow().open_devtools();
+                    }
+                }
+                Key::Character("d") => {
+                    #[cfg(debug_assertions)]
+                    {
+                        use crate::ui::common::send_event_to_webview;
+                        send_event_to_webview(
+                            &webview.borrow(),
+                            &WebViewEvent::WebViewUpdate {
+                                display_text: "text-update".to_string(),
+                            },
+                        );
                     }
                 }
                 _ => {}

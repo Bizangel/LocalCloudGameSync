@@ -1,10 +1,12 @@
 import { useEffect } from "react"
-import { IPC } from "../ipc/common"
+import { IPC, type WebViewEvent } from "../ipc/common"
 
-export const useGlobalRustEventListener = () => {
+export const useWebViewEvent = <K extends keyof WebViewEvent>(key: K, callback: (ev: WebViewEvent[K]) => void) => {
     useEffect(() => {
         const listener = (event: MessageEvent<any>) => {
-            console.log("received new event!: ", event)
+            if (key in event.data) {
+                callback(event.data[key])
+            }
         }
 
         window.addEventListener("message", listener);
@@ -12,5 +14,5 @@ export const useGlobalRustEventListener = () => {
         return () => {
             window.removeEventListener("message", listener);
         }
-    }, [])
+    }, [callback, key])
 }

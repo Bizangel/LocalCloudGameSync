@@ -1,12 +1,15 @@
 import { useCallback } from 'react'
 import './App.css'
-import { useGlobalRustEventListener } from './hooks/useGlobalRustEventListener'
-import { IPC } from './ipc/common';
+import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
+import { IPC, type WebViewUpdateEvent } from './ipc/common';
 
 function App() {
-  useGlobalRustEventListener();
+  const onWebViewChange = useCallback((ev: WebViewUpdateEvent) => {
+    console.log("update: ", ev)
+  }, []);
+  useWebViewEvent("WebViewUpdate", onWebViewChange);
 
-  let conflictresolve = useCallback(() => {
+  const conflictresolve = useCallback(() => {
     IPC.sendResolveConflict("push");
   }, [])
 
