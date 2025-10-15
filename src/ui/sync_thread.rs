@@ -1,5 +1,5 @@
 use crate::{
-    commands::{CheckSyncResult, check_sync_command},
+    commands::{CheckSyncResult, check_sync_command, pull_command},
     config::RuntimeSyncConfig,
     ui::common::{ResolveConflictChoice, UIEvent},
 };
@@ -50,7 +50,7 @@ pub fn do_sync(
     let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
     send_ui_display_update(&ui_proxy, &main_sync, "Checking remote...");
 
-    let check_sync_result = check_sync_command(&sync_config, false)?;
+    let (check_sync_result, remote_head) = check_sync_command(&sync_config, false)?;
 
     match check_sync_result {
         CheckSyncResult::UpToDate => {
@@ -64,6 +64,9 @@ pub fn do_sync(
                 "Newer version on remote found! Pulling from remote...",
             );
             // TODO: take action
+
+            // pull_command(sync_config, push_if_head)
+
             return Ok(());
         }
         CheckSyncResult::FastForwardRemote => {

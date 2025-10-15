@@ -1,3 +1,4 @@
+use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
 use crate::local_head;
 use crate::remote_save_client::{RemoteSaveClient, get_default_remote_save_client};
@@ -33,7 +34,7 @@ struct SyncStatusCheckInput<'a> {
 pub fn check_sync_command(
     sync_config: &RuntimeSyncConfig,
     short_flag: bool,
-) -> Result<CheckSyncResult, String> {
+) -> Result<(CheckSyncResult, Option<Revision>), String> {
     let client = get_default_remote_save_client(&sync_config);
     let local_head = local_head::read_local_head(&sync_config)?;
     let current_head =
@@ -48,7 +49,7 @@ pub fn check_sync_command(
 
     if short_flag {
         println!("{}", check_res.as_str());
-        return Ok(check_res);
+        return Ok((check_res, remote_head));
     }
 
     let local_head_display = local_head
@@ -89,7 +90,7 @@ pub fn check_sync_command(
         }
     }
 
-    Ok(check_res)
+    Ok((check_res, remote_head))
 }
 
 fn determine_sync_status(input: &SyncStatusCheckInput) -> CheckSyncResult {

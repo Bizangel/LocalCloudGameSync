@@ -24,7 +24,8 @@ impl TestSyncClient {
 
     pub fn check_sync(&self) -> CheckSyncResult {
         println!("--- [{}] Starting Check-Sync ---- ", self._client_name);
-        let res = check_sync_command(&self.config, false).expect("Unable to check sync status");
+        let (res, _remote_head) =
+            check_sync_command(&self.config, false).expect("Unable to check sync status");
         println!("--- [{}] Finished Check-Sync ---- ", self._client_name);
         return res;
     }
