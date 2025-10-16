@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useControllerEvent } from "./useControllerEvent";
 import { BUTTONS, type Direction } from "../gamepad/common";
 import { useLeftStickEvent } from "./useLeftStickEvent";
@@ -7,19 +7,28 @@ import { useKeyboardPress } from "./useKeyboardPress";
 
 type ConfirmCallback = (idx: number) => void;
 
-export function useMultiInputNavigation(indexCount: number, confirmationCallback: ConfirmCallback) {
-    const [navIndex, setNavIndex] = useState(0);
+export function useMultiInputNavigation(indexCount: number, confirmationCallback: ConfirmCallback, enabled: boolean = true)
+: number | null
+{
+    const [navIndex, setNavIndex] = useState<null | number>(null);
+    useEffect(() => {
+        if (!enabled)
+            setNavIndex(null); // unselect if disabling
+    }, [enabled, setNavIndex])
 
     const onConfirmation = useCallback(() => {
-        confirmationCallback(navIndex);
-    }, [navIndex])
+        if (enabled && navIndex !== null)
+            confirmationCallback(navIndex);
+    }, [enabled, navIndex])
 
     const moveIdxCallback = useCallback((dir: Direction) => {
+        if (!enabled) return;
+
         if (dir == "LEFT")
-            setNavIndex(idx => ((idx - 1 + indexCount) % indexCount));
+            setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : 0);
         if (dir == "RIGHT")
-            setNavIndex(idx => ((idx + 1) % indexCount));
-    }, [indexCount])
+            setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 0);
+    }, [enabled, indexCount])
 
     // Confirm with both controller and keyboard
     useControllerEvent(ev => {

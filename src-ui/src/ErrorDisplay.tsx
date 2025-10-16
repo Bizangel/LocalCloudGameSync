@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import './ErrorDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
+import { ConfirmModal } from './ConfirmModal';
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
@@ -16,33 +17,21 @@ const ErrorDisplay = ({
   onRetry,
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
-  const modalRef = useRef<HTMLDivElement | null>(null)
 
   const baseButtons = [
       { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
       { label: 'Close', className: 'secondary', action: onClose },
       { label: 'Retry', className: 'neutral', action: onRetry },
   ]
-
   const onConfirm = useCallback((idx: number) => {
     let entry = baseButtons[idx]
     if (entry)
       entry.action?.()
   }, [])
 
-  const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm);
-
-  const modalButtons = [
-    { label: 'Cancel', className: 'secondary', action: () => setShowConfirm(false) },
-    {
-      label: 'Yes, Continue',
-      className: 'danger',
-      action: () => {
-        setShowConfirm(false)
-        onContinue?.()
-      },
-    },
-  ]
+  const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinue?.() }, [setShowConfirm])
+  const onModalCancel = useCallback(() => {setShowConfirm(false)}, [setShowConfirm])
+  const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, !showConfirm);
 
   return (
     <div className="container">
@@ -72,23 +61,7 @@ const ErrorDisplay = ({
       </div>
 
       {showConfirm && (
-        <div className="modal-backdrop">
-          <div className="modal" ref={modalRef}>
-            <h2>Are you sure?</h2>
-            <p>Continuing may cause data loss or other issues. Do you really want to proceed?</p>
-            <div className="modal-buttons">
-              {modalButtons.map((btn, i) => (
-                <button
-                  key={btn.label}
-                  className={`btn ${btn.className} ${buttonIndex === i ? 'focused' : ''}`}
-                  onClick={btn.action}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ConfirmModal onCancel={onModalCancel} onConfirm={onModalConfirm}/>
       )}
     </div>
   )
