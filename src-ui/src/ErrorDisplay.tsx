@@ -5,21 +5,21 @@ import { ConfirmModal } from './ConfirmModal';
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
-  onContinue?: () => void
+  onContinueOffline?: () => void
   onClose?: () => void
   onRetry?: () => void
 }
 
 const ErrorDisplay = ({
   error: { title, subtext },
-  onContinue,
+  onContinueOffline,
   onClose,
   onRetry,
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
 
   const baseButtons = [
-      { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
+      { label: 'Continue Offline', className: 'danger', action: () => setShowConfirm(true) },
       { label: 'Close', className: 'secondary', action: onClose },
       { label: 'Retry', className: 'neutral', action: onRetry },
   ]
@@ -29,7 +29,7 @@ const ErrorDisplay = ({
       entry.action?.()
   }, [])
 
-  const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinue?.() }, [setShowConfirm])
+  const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinueOffline?.() }, [setShowConfirm])
   const onModalCancel = useCallback(() => {setShowConfirm(false)}, [setShowConfirm])
   const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, undefined, !showConfirm);
 

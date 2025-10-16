@@ -28,7 +28,7 @@ export function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
         <div className="modal-backdrop">
           <div className="modal">
             <h2>Are you sure?</h2>
-            <p>Continuing may cause data loss or other issues. Do you really want to proceed?</p>
+            <p>Continuing offline can potentially cause a save conflict later on. Do you really want to proceed?</p>
             <div className="modal-buttons">
               {modalButtons.map((btn, i) => (
                 <button

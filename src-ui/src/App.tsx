@@ -24,7 +24,7 @@ function App() {
       return <ErrorDisplay error={display}
         onClose={() => { console.log("closing") }}
         onRetry={() => { console.log("retry") }}
-        onContinue={() => {console.log("continue")}}
+        onContinueOffline={() => {console.log("continue")}}
       />;
     case "Conflict":
       return null;
