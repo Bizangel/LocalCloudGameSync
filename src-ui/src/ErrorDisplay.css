@@ -15,9 +15,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: pulse 1.5s infinite ease-in-out;
-    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.5));
+    animation: shake 0.4s ease-in-out;
+    filter: drop-shadow(0 0 6px rgba(231, 76, 60, 0.4));
 }
+
+/* Optional alternative (replace animation above if preferred)
+   animation: shake 0.4s ease-in-out; */
 
 h1 {
     font-size: 24px;
@@ -43,16 +46,18 @@ p {
     }
 }
 
-@keyframes pulse {
+@keyframes shake {
 
     0%,
     100% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.4));
+        transform: translateX(0);
     }
 
-    50% {
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 14px rgba(231, 76, 60, 0.8));
+    25% {
+        transform: translateX(-2px);
+    }
+
+    75% {
+        transform: translateX(2px);
     }
 }
