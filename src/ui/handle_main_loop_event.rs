@@ -52,6 +52,13 @@ pub fn handle_main_loop_event(
                     },
                 );
             }
+            UIEvent::WebViewStateChangeRequest { state } => {
+                // Forward it to webview
+                send_event_to_webview(
+                    &webview.borrow(),
+                    &WebViewEvent::WebViewStateChange { state },
+                );
+            }
         },
         _ => {}
     }

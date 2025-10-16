@@ -31,5 +31,14 @@ export type WebViewUpdateEvent = {
   sub_text: string
 }
 
-export type WebViewEvent = | { WebViewUpdate: WebViewUpdateEvent };
+export type WebViewState = "Loading" | "Conflict" | "Error"
 
+export type WebViewStateChangeEvent = {
+  state: WebViewState,
+}
+
+export type WebViewEvent = { WebViewUpdate: WebViewUpdateEvent } | { WebViewStateChange : WebViewStateChangeEvent };
+
+export type WebViewEventMap = {
+  [E in WebViewEvent as keyof E]: E[keyof E];
+};

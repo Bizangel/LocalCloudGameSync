@@ -48,6 +48,13 @@ impl FromStr for WebViewRequestType {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub enum WebViewState {
+    Loading,  // Default loading state
+    Conflict, // A conflict has ocurred - user needs to make choice
+    Error,    // An error has ocurred - user needs to make choice - or retry.
+}
+
 // Events generated to be handled for the main loop
 pub enum UIEvent {
     WebViewReady,
@@ -55,6 +62,10 @@ pub enum UIEvent {
     WebViewUpdateRequest {
         title_text: String,
         sub_text: String,
+    },
+
+    WebViewStateChangeRequest {
+        state: WebViewState,
     },
 
     ConflictResolve {
@@ -68,6 +79,10 @@ pub enum WebViewEvent {
     WebViewUpdate {
         title_text: String,
         sub_text: String,
+    },
+
+    WebViewStateChange {
+        state: WebViewState,
     },
 }
 

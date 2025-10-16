@@ -1,7 +1,7 @@
 use crate::{
     commands::{CheckSyncResult, check_sync_command, pull_command_with_update_callback},
     config::RuntimeSyncConfig,
-    ui::common::{ResolveConflictChoice, UIEvent},
+    ui::common::{ResolveConflictChoice, UIEvent, WebViewState},
 };
 use std::sync::mpsc::Receiver;
 use tao::event_loop::EventLoopProxy;
@@ -37,6 +37,10 @@ fn send_ui_display_update(
         sub_text: subtext.into(),
     };
     let _ = ui_proxy.send_event(req);
+}
+
+fn send_ui_change_state(ui_proxy: &EventLoopProxy<UIEvent>, state: WebViewState) {
+    let _ = ui_proxy.send_event(UIEvent::WebViewStateChangeRequest { state });
 }
 
 pub fn do_sync(
@@ -127,10 +131,11 @@ pub fn sync_thread_main(
         Ok(_) => {
             // We're done - let UI thread exit with success
             // wait 1 second so user can read - it gives nice feeling maybe remove it later?
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            // std::thread::sleep(std::time::Duration::from_secs(1));
             let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
         }
         Err(e) => {
+            send_ui_change_state(&ui_proxy, WebViewState::Error);
             // Error send error
             send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
         }

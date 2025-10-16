@@ -1,58 +1,29 @@
 import { useCallback, useState } from 'react'
 import './App.css'
 import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
-import { type WebViewUpdateEvent } from './ipc/common';
+import { type WebViewState } from './ipc/common';
+import LoadingDisplay from './LoadingDisplay';
 
 function App() {
-  const [display, setDisplay] = useState({ title: "Loading", subtext: "", isError: false });
-  const [fadeKey, setFadeKey] = useState(0); // triggers animation on text change
+  const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
+  const [display, setDisplay] = useState({ title: "Loading", subtext: "" });
 
-  const onWebViewChange = useCallback((ev: WebViewUpdateEvent) => {
-    setDisplay({ title: ev.title_text, subtext: ev.sub_text, isError: true });
-    setFadeKey(prev => prev + 1);
-  }, []);
+  useWebViewEvent("WebViewStateChange", useCallback((ev) => {
+    setWebViewState(ev.state);
+  }, [setWebViewState]));
 
-  useWebViewEvent("WebViewUpdate", onWebViewChange);
+  useWebViewEvent("WebViewUpdate", useCallback((ev) => {
+    setDisplay({ title: ev.title_text, subtext: ev.sub_text });
+  }, [setDisplay]));
 
-  // Example handlers for the buttons
-  const handleRetry = () => {
-    console.log("Retry clicked");
-    // Add your retry logic here
-  };
-
-  const handleClose = () => {
-    console.log("Close clicked");
-    // Add your close logic here
-  };
-
-  const handleContinue = () => {
-    console.log("Continue Anyways clicked");
-    // Add your continue logic here
-  };
-
-  return (
-    <div className="container">
-      <div className="loading-wrapper">
-        {display.isError ? (
-          <div className="error-icon">
-            <span className="error-x">✖</span>
-          </div>
-        ) : (
-          <div className="spinner"></div>
-        )}
-        <h1>{display.title}</h1>
-        <p key={fadeKey} className="fade-text">{display.subtext}</p>
-
-        {display.isError && (
-          <div className="error-buttons">
-            <button onClick={handleRetry}>Retry</button>
-            <button onClick={handleClose}>Close</button>
-            <button onClick={handleContinue}>Continue Anyways</button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  switch (webViewState) {
+    case "Loading":
+      return <LoadingDisplay {...{display}}/>
+    case "Error":
+      return null;
+    case "Conflict":
+      return null;
+  }
 }
 
 export default App;
