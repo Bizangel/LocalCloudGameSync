@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import './App.css'
 import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
-import { type WebViewState } from './ipc/common';
+import { IPC, type WebViewState } from './ipc/common';
 import LoadingDisplay from './LoadingDisplay';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -17,14 +17,26 @@ function App() {
     setDisplay({ title: ev.title_text, subtext: ev.sub_text });
   }, [setDisplay]));
 
+  const closeUnsuccess = useCallback(() => {
+    IPC.sendErrorResolve("close");
+  }, [])
+
+  const retrySync = useCallback(() => {
+    IPC.sendErrorResolve("retry");
+  }, [])
+
+  const continueOffline = useCallback(() => {
+    IPC.sendErrorResolve("continue-offline");
+  }, [])
+
   switch (webViewState) {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
     case "Error":
       return <ErrorDisplay error={display}
-        onClose={() => { console.log("closing") }}
-        onRetry={() => { console.log("retry") }}
-        onContinueOffline={() => {console.log("continue")}}
+        onClose={closeUnsuccess}
+        onRetry={retrySync}
+        onContinueOffline={continueOffline}
       />;
     case "Conflict":
       return null;

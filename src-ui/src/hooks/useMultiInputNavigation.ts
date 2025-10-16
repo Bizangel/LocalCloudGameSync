@@ -24,12 +24,12 @@ export function useMultiInputNavigation(
     const onConfirmation = useCallback(() => {
         if (enabled && navIndex !== null)
             confirmationCallback(navIndex);
-    }, [enabled, navIndex])
+    }, [enabled, navIndex, confirmationCallback])
 
     const onCancel = useCallback(() => {
         if (enabled)
             cancelCallback?.();
-    }, [enabled])
+    }, [enabled, cancelCallback])
 
     const moveIdxCallback = useCallback((dir: Direction) => {
         if (!enabled) return;

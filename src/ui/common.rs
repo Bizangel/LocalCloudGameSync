@@ -13,6 +13,13 @@ pub enum ResolveConflictChoice {
     Pull,
 }
 
+#[derive(Debug, Clone)]
+pub enum ResolveErrorChoice {
+    Retry,
+    Close,
+    ContinueOffline,
+}
+
 impl FromStr for ResolveConflictChoice {
     type Err = ();
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -24,10 +31,23 @@ impl FromStr for ResolveConflictChoice {
     }
 }
 
+impl FromStr for ResolveErrorChoice {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "retry" => Ok(ResolveErrorChoice::Retry),
+            "close" => Ok(ResolveErrorChoice::Close),
+            "continue-offline" => Ok(ResolveErrorChoice::ContinueOffline),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum WebViewRequestType {
     WebViewReady,
     ResolveConflict,
+    ResolveError,
 }
 
 #[derive(Deserialize, Debug)]
@@ -43,6 +63,7 @@ impl FromStr for WebViewRequestType {
         match s.to_lowercase().as_str() {
             "webview-ready" => Ok(WebViewRequestType::WebViewReady),
             "resolve-conflict" => Ok(WebViewRequestType::ResolveConflict),
+            "resolve-error" => Ok(WebViewRequestType::ResolveError),
             _ => Err(()),
         }
     }
@@ -59,6 +80,8 @@ pub enum WebViewState {
 pub enum UIEvent {
     WebViewReady,
     SyncSuccessCompletedEvent,
+    SyncFailedEvent,
+
     WebViewUpdateRequest {
         title_text: String,
         sub_text: String,
@@ -68,8 +91,12 @@ pub enum UIEvent {
         state: WebViewState,
     },
 
-    ConflictResolve {
+    ResolveConflict {
         choice: ResolveConflictChoice,
+    },
+
+    ResolveError {
+        choice: ResolveErrorChoice,
     },
 }
 

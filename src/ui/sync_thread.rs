@@ -1,7 +1,7 @@
 use crate::{
     commands::{CheckSyncResult, check_sync_command, pull_command_with_update_callback},
     config::RuntimeSyncConfig,
-    ui::common::{ResolveConflictChoice, UIEvent, WebViewState},
+    ui::common::{ResolveConflictChoice, ResolveErrorChoice, UIEvent, WebViewState},
 };
 use std::sync::mpsc::Receiver;
 use tao::event_loop::EventLoopProxy;
@@ -21,10 +21,12 @@ where
         }
     }
 }
+
 #[derive(Debug, Clone)]
 pub enum SyncThreadCommand {
     UIReady,
     ResolveConflict { choice: ResolveConflictChoice },
+    ResolveError { choice: ResolveErrorChoice },
 }
 
 fn send_ui_display_update(
@@ -46,11 +48,9 @@ fn send_ui_change_state(ui_proxy: &EventLoopProxy<UIEvent>, state: WebViewState)
 pub fn do_sync(
     sync_config: &RuntimeSyncConfig,
     ui_proxy: &EventLoopProxy<UIEvent>,
-    sync_rx: &Receiver<SyncThreadCommand>,
+    _sync_rx: &Receiver<SyncThreadCommand>,
 ) -> Result<(), String> {
-    // Await for UI.
-    block_until(&sync_rx, |cmd| matches!(cmd, SyncThreadCommand::UIReady));
-
+    send_ui_change_state(ui_proxy, WebViewState::Loading);
     let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
     send_ui_display_update(&ui_proxy, &main_sync, "Checking remote...");
 
@@ -127,17 +127,42 @@ pub fn sync_thread_main(
     ui_proxy: EventLoopProxy<UIEvent>,
     sync_rx: Receiver<SyncThreadCommand>,
 ) {
-    match do_sync(&sync_config, &ui_proxy, &sync_rx) {
-        Ok(_) => {
-            // We're done - let UI thread exit with success
-            // wait 1 second so user can read - it gives nice feeling maybe remove it later?
-            // std::thread::sleep(std::time::Duration::from_secs(1));
-            let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
-        }
-        Err(e) => {
-            send_ui_change_state(&ui_proxy, WebViewState::Error);
-            // Error send error
-            send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
+    // Await for UI.
+    block_until(&sync_rx, |cmd| matches!(cmd, SyncThreadCommand::UIReady));
+    loop {
+        match do_sync(&sync_config, &ui_proxy, &sync_rx) {
+            Ok(_) => {
+                // We're done - let UI thread exit with success
+                // wait 1 second so user can read - it gives nice feeling maybe remove it later?
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
+                break; // done
+            }
+            Err(e) => {
+                send_ui_change_state(&ui_proxy, WebViewState::Error);
+                // Error send error
+                send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
+                let x = block_until(&sync_rx, |cmd| {
+                    matches!(cmd, SyncThreadCommand::ResolveError { choice: _ })
+                });
+                let SyncThreadCommand::ResolveError { choice } = x else {
+                    unreachable!("block_until guarantees this is ResolveError")
+                };
+
+                match choice {
+                    ResolveErrorChoice::Close => {
+                        // Exit with 1
+                        let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
+                        break; // done
+                    }
+                    ResolveErrorChoice::Retry => continue, // re-do outer loop
+                    ResolveErrorChoice::ContinueOffline => {
+                        // Send as if sync was successful. This will exit with code 0 allowing game to launch.
+                        let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
+                        break; // done
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-use crate::ui::common::{ResolveConflictChoice, UIEvent, WebViewRequest, WebViewRequestType};
+use crate::ui::common::{
+    ResolveConflictChoice, ResolveErrorChoice, UIEvent, WebViewRequest, WebViewRequestType,
+};
 use tao::event_loop::EventLoopProxy;
 use wry::http::Request;
 
@@ -18,7 +20,12 @@ pub fn handle_webview_event(req: Request<String>, event_proxy: &EventLoopProxy<U
         }
         WebViewRequestType::ResolveConflict => {
             if let Ok(choice) = ipc_req.body.parse::<ResolveConflictChoice>() {
-                let _ = event_proxy.send_event(UIEvent::ConflictResolve { choice });
+                let _ = event_proxy.send_event(UIEvent::ResolveConflict { choice });
+            };
+        }
+        WebViewRequestType::ResolveError => {
+            if let Ok(choice) = ipc_req.body.parse::<ResolveErrorChoice>() {
+                let _ = event_proxy.send_event(UIEvent::ResolveError { choice });
             };
         }
     }

@@ -1,8 +1,9 @@
 
-const _IPCRequests = ["webview-ready", "resolve-conflict"] as const;
+const _IPCRequests = ["webview-ready", "resolve-conflict", "resolve-error"] as const;
 type IPCRequest = typeof _IPCRequests[number];
 
 type ResolveConflictType = "pull" | "push";
+type ResolveErrorType = "close" | "retry" | "continue-offline";
 
 type WebViewRequest = {
   request: IPCRequest,
@@ -20,6 +21,10 @@ export const IPC = {
 
   sendResolveConflict(choice: ResolveConflictType) {
     _postIPC({ request: "resolve-conflict", body: choice});
+  },
+
+  sendErrorResolve(choice: ResolveErrorType) {
+    _postIPC({ request: "resolve-error", body: choice});
   }
 };
 

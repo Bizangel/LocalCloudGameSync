@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import './ErrorDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
 import { ConfirmModal } from './ConfirmModal';
@@ -18,18 +18,19 @@ const ErrorDisplay = ({
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const baseButtons = [
+  const baseButtons = useMemo(() => [
       { label: 'Continue Offline', className: 'danger', action: () => setShowConfirm(true) },
       { label: 'Close', className: 'secondary', action: onClose },
       { label: 'Retry', className: 'neutral', action: onRetry },
-  ]
+  ], [onClose, onRetry, setShowConfirm])
+
   const onConfirm = useCallback((idx: number) => {
-    let entry = baseButtons[idx]
+    const entry = baseButtons[idx]
     if (entry)
       entry.action?.()
-  }, [])
+  }, [baseButtons])
 
-  const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinueOffline?.() }, [setShowConfirm])
+  const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinueOffline?.() }, [setShowConfirm, onContinueOffline])
   const onModalCancel = useCallback(() => {setShowConfirm(false)}, [setShowConfirm])
   const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, undefined, !showConfirm);
 

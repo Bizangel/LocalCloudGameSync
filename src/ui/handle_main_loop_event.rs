@@ -31,13 +31,20 @@ pub fn handle_main_loop_event(
                 let _ = sync_tx.send(SyncThreadCommand::UIReady);
             }
             UIEvent::SyncSuccessCompletedEvent => {
-                // successfully exit
                 sync_thread_handle.borrow_mut().take().map(|t| t.join());
                 *control_flow = ControlFlow::Exit; // exit code 0
             }
-            UIEvent::ConflictResolve { choice } => {
+            UIEvent::SyncFailedEvent => {
+                sync_thread_handle.borrow_mut().take().map(|t| t.join());
+                *control_flow = ControlFlow::ExitWithCode(1); // exit non-zero
+            }
+            UIEvent::ResolveConflict { choice } => {
                 // send to sync thread
                 let _ = sync_tx.send(SyncThreadCommand::ResolveConflict { choice });
+            }
+            UIEvent::ResolveError { choice } => {
+                // send to sync thread
+                let _ = sync_tx.send(SyncThreadCommand::ResolveError { choice });
             }
             UIEvent::WebViewUpdateRequest {
                 title_text,

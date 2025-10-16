@@ -17,10 +17,10 @@ export function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
     ], [onConfirm, onCancel])
 
     const onButtonClick = useCallback((idx: number) => {
-        let entry = modalButtons[idx]
+        const entry = modalButtons[idx]
         if (entry)
           entry.action?.()
-    }, [])
+    }, [modalButtons])
 
     const buttonIndex = useMultiInputNavigation(modalButtons.length, onButtonClick, onCancel);
 
