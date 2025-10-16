@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import './ErrorDisplay.css'
-import { useLeftStickEvent } from './hooks/useLeftStickEvent';
-import { useKeyboardNavigation } from './hooks/useKeyboardArrowsEvent';
+import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
@@ -19,20 +18,19 @@ const ErrorDisplay = ({
   const [showConfirm, setShowConfirm] = useState(false)
   const modalRef = useRef<HTMLDivElement | null>(null)
 
-
-  useLeftStickEvent((ev) => {
-    console.log(ev);
-  })
-
-  useKeyboardNavigation((ev) => {
-    console.log(ev);
-  })
-
   const baseButtons = [
-    { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
-    { label: 'Close', className: 'secondary', action: onClose },
-    { label: 'Retry', className: 'neutral', action: onRetry },
+      { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
+      { label: 'Close', className: 'secondary', action: onClose },
+      { label: 'Retry', className: 'neutral', action: onRetry },
   ]
+
+  const onConfirm = useCallback((idx: number) => {
+    let entry = baseButtons[idx]
+    if (entry)
+      entry.action?.()
+  }, [])
+
+  const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm);
 
   const modalButtons = [
     { label: 'Cancel', className: 'secondary', action: () => setShowConfirm(false) },
@@ -64,7 +62,7 @@ const ErrorDisplay = ({
           {baseButtons.map((btn, i) => (
             <button
               key={btn.label}
-              className={`btn ${btn.className} ${0 === i ? 'focused' : ''}`}
+              className={`btn ${btn.className} ${buttonIndex === i ? 'focused' : ''}`}
               onClick={btn.action}
             >
               {btn.label}
@@ -82,7 +80,7 @@ const ErrorDisplay = ({
               {modalButtons.map((btn, i) => (
                 <button
                   key={btn.label}
-                  className={`btn ${btn.className} ${0 === i ? 'focused' : ''}`}
+                  className={`btn ${btn.className} ${buttonIndex === i ? 'focused' : ''}`}
                   onClick={btn.action}
                 >
                   {btn.label}

@@ -56,11 +56,6 @@ p {
     text-align: center;
 }
 
-.btn:focus {
-    outline: 2px solid #ffffff;
-    outline-offset: 3px;
-}
-
 /* Button variants */
 .btn.neutral {
     background-color: #2d2d2d;
