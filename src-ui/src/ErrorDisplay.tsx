@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import './ErrorDisplay.css'
+import { useControllerEvent } from './hooks/useControllerEvent';
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
@@ -16,6 +17,10 @@ const ErrorDisplay = ({
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
   const modalRef = useRef<HTMLDivElement | null>(null)
+
+  useControllerEvent((ev) => {
+    console.log("received:", ev)
+  }, [])
 
   const baseButtons = [
     { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
