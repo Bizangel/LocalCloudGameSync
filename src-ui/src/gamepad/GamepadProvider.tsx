@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { CONTROLLER_EVENTS, type AxisStates, type ButtonStates, type ControllerEvent, type ControllerEventCallback, type GamepadContextValue } from './common';
+import { GAMEPAD_EVENTS, type AxisStates, type ButtonStates, type PadEvent, type PadEventCallback, type GamepadContextValue } from './common';
 import { GamepadContext } from './gamepadContext';
 
 
@@ -7,7 +7,7 @@ import { GamepadContext } from './gamepadContext';
 export function GamepadProvider({ children }: React.PropsWithChildren) {
   const [connected, setConnected] = useState<boolean>(false);
   const [gamepadIndex, setGamepadIndex] = useState<number | null>(null);
-  const eventListeners = useRef<Set<ControllerEventCallback>>(new Set());
+  const eventListeners = useRef<Set<PadEventCallback>>(new Set());
   const buttonStates = useRef<ButtonStates>({});
   const axisStates = useRef<AxisStates>({});
   const animationFrame = useRef<number | null>(null);
@@ -15,7 +15,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
   const AXIS_DEADZONE = 0.15;
 
   // Add event listener
-  const addEventListener = useCallback((callback: ControllerEventCallback): (() => void) => {
+  const addEventListener = useCallback((callback: PadEventCallback): (() => void) => {
     eventListeners.current.add(callback);
     return () => {
       eventListeners.current.delete(callback);
@@ -23,7 +23,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
   }, []);
 
   // Emit event to all listeners
-  const emitEvent = useCallback((event: ControllerEvent): void => {
+  const emitEvent = useCallback((event: PadEvent): void => {
     eventListeners.current.forEach((listener) => {
       listener(event);
     });
@@ -52,7 +52,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
         if (isPressed && !wasPressed) {
           // Button press event
           emitEvent({
-            type: CONTROLLER_EVENTS.BUTTON_PRESS,
+            type: GAMEPAD_EVENTS.BUTTON_PRESS,
             button: index,
             gamepadIndex: gamepadIndex,
             timestamp: Date.now(),
@@ -61,7 +61,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
         } else if (!isPressed && wasPressed) {
           // Button release event
           emitEvent({
-            type: CONTROLLER_EVENTS.BUTTON_RELEASE,
+            type: GAMEPAD_EVENTS.BUTTON_RELEASE,
             button: index,
             gamepadIndex: gamepadIndex,
             timestamp: Date.now(),
@@ -81,7 +81,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
         // Only emit if value changed significantly (more than 0.05 difference)
         if (Math.abs(normalizedValue - previousValue) > 0.05) {
           emitEvent({
-            type: CONTROLLER_EVENTS.AXIS_MOVE,
+            type: GAMEPAD_EVENTS.AXIS_MOVE,
             axis: index,
             value: normalizedValue,
             gamepadIndex: gamepadIndex,

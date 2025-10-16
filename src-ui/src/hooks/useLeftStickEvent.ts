@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useControllerEvent } from "./useControllerEvent";
-import { CONTROLLER_EVENTS } from "../gamepad/common";
+import { GAMEPAD_EVENTS } from "../gamepad/common";
 
 // Direction types for stick navigation
 export type StickDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -29,7 +29,7 @@ export function useLeftStickEvent(
   }, [callback, ...deps]);
 
   useControllerEvent((event) => {
-    if (event.type !== CONTROLLER_EVENTS.AXIS_MOVE) {
+    if (event.type !== GAMEPAD_EVENTS.AXIS_MOVE) {
       return;
     }
 

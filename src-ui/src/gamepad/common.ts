@@ -19,7 +19,7 @@ export const BUTTONS = {
 } as const;
 
 // Event types
-export const CONTROLLER_EVENTS = {
+export const GAMEPAD_EVENTS = {
   BUTTON_PRESS: 'buttonPress',
   BUTTON_RELEASE: 'buttonRelease',
   AXIS_MOVE: 'axisMove',
@@ -27,10 +27,10 @@ export const CONTROLLER_EVENTS = {
 
 // Type definitions
 export type ButtonIndex = typeof BUTTONS[keyof typeof BUTTONS];
-export type ControllerEventType = typeof CONTROLLER_EVENTS[keyof typeof CONTROLLER_EVENTS];
+export type GamepadEventType = typeof GAMEPAD_EVENTS[keyof typeof GAMEPAD_EVENTS];
 
 export type AxisMoveEvent = {
-  type: typeof CONTROLLER_EVENTS.AXIS_MOVE;
+  type: typeof GAMEPAD_EVENTS.AXIS_MOVE;
   axis: number;
   value: number;
   gamepadIndex: number;
@@ -38,20 +38,19 @@ export type AxisMoveEvent = {
 }
 
 export type ButtonEvent = {
-  type: typeof CONTROLLER_EVENTS.BUTTON_PRESS | typeof CONTROLLER_EVENTS.BUTTON_RELEASE;
+  type: typeof GAMEPAD_EVENTS.BUTTON_PRESS | typeof GAMEPAD_EVENTS.BUTTON_RELEASE;
   button: number;
   gamepadIndex: number;
   timestamp: number;
 }
 
-export type ControllerEvent = ButtonEvent | AxisMoveEvent;
-
-export type ControllerEventCallback = (event: ControllerEvent) => void;
+export type PadEvent = ButtonEvent | AxisMoveEvent;
+export type PadEventCallback = (event: PadEvent) => void;
 
 export type GamepadContextValue = {
   connected: boolean;
   gamepadIndex: number | null;
-  addEventListener: (callback: ControllerEventCallback) => () => void;
+  addEventListener: (callback: PadEventCallback) => () => void;
 }
 
 export type ButtonStates = {
