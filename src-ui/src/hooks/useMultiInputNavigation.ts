@@ -37,7 +37,7 @@ export function useMultiInputNavigation(
         if (dir == "LEFT")
             setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : 0);
         if (dir == "RIGHT")
-            setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 0);
+            setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 1 % indexCount);
     }, [enabled, indexCount])
 
     // Confirm with both controller and keyboard
