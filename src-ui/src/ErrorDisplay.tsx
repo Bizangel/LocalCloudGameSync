@@ -2,9 +2,12 @@ import './ErrorDisplay.css'
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
+  onContinue?: () => void
+  onClose?: () => void
+  onRetry?: () => void
 }
 
-const ErrorDisplay = ({ error: { title, subtext } }: ErrorDisplayProps) => {
+const ErrorDisplay = ({ error: { title, subtext }, onContinue, onClose, onRetry }: ErrorDisplayProps) => {
   return (
     <div className="container">
       <div className="error-wrapper">
@@ -37,8 +40,21 @@ const ErrorDisplay = ({ error: { title, subtext } }: ErrorDisplayProps) => {
             />
           </svg>
         </div>
+
         <h1>{title}</h1>
         <p>{subtext}</p>
+
+        <div className="error-buttons">
+          <button className="btn danger" onClick={onContinue}>
+            Continue Anyways
+          </button>
+          <button className="btn secondary" onClick={onClose}>
+            Close
+          </button>
+          <button className="btn neutral" onClick={onRetry}>
+            Retry
+          </button>
+        </div>
       </div>
     </div>
   )

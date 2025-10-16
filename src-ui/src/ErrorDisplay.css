@@ -19,9 +19,6 @@
     filter: drop-shadow(0 0 6px rgba(231, 76, 60, 0.4));
 }
 
-/* Optional alternative (replace animation above if preferred)
-   animation: shake 0.4s ease-in-out; */
-
 h1 {
     font-size: 24px;
     font-weight: 600;
@@ -34,6 +31,70 @@ p {
     line-height: 1.5;
 }
 
+/* Buttons layout */
+.error-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn {
+    flex: 1 1 120px;
+    /* makes all buttons equal width */
+    min-width: 120px;
+    max-width: 160px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    outline: none;
+    text-align: center;
+}
+
+.btn:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+/* Button variants */
+.btn.neutral {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+}
+
+.btn.neutral:hover {
+    background-color: #3a3a3a;
+}
+
+.btn.secondary {
+    background-color: #444;
+    color: #e0e0e0;
+}
+
+.btn.secondary:hover {
+    background-color: #555;
+}
+
+.btn.danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn.danger:hover {
+    background-color: #ff5c4b;
+}
+
+/* Slight press animation */
+.btn:active {
+    transform: scale(0.97);
+}
+
+/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
