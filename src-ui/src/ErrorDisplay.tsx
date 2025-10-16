@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import './ErrorDisplay.css'
 
 type ErrorDisplayProps = {
@@ -17,71 +17,32 @@ const ErrorDisplay = ({
   const [showConfirm, setShowConfirm] = useState(false)
   const modalRef = useRef<HTMLDivElement | null>(null)
 
-  const handleContinueClick = () => {
-    setShowConfirm(true)
-  }
+  const baseButtons = [
+    { label: 'Continue Anyways', className: 'danger', action: () => setShowConfirm(true) },
+    { label: 'Close', className: 'secondary', action: onClose },
+    { label: 'Retry', className: 'neutral', action: onRetry },
+  ]
 
-  const handleConfirm = () => {
-    setShowConfirm(false)
-    onContinue?.()
-  }
-
-  const handleCancel = () => {
-    setShowConfirm(false)
-  }
-
-  // Close on click outside modal
-  useEffect(() => {
-    if (!showConfirm) return
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+  const modalButtons = [
+    { label: 'Cancel', className: 'secondary', action: () => setShowConfirm(false) },
+    {
+      label: 'Yes, Continue',
+      className: 'danger',
+      action: () => {
         setShowConfirm(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showConfirm])
-
-  // Close on Escape key
-  useEffect(() => {
-    if (!showConfirm) return
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setShowConfirm(false)
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [showConfirm])
+        onContinue?.()
+      },
+    },
+  ]
 
   return (
     <div className="container">
       <div className="error-wrapper">
         <div className="error-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 64 64"
-            width="64"
-            height="64"
-            fill="none"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
             <circle cx="32" cy="32" r="30" stroke="#e74c3c" strokeWidth="4" />
-            <line
-              x1="20"
-              y1="20"
-              x2="44"
-              y2="44"
-              stroke="#e74c3c"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            <line
-              x1="44"
-              y1="20"
-              x2="20"
-              y2="44"
-              stroke="#e74c3c"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
+            <line x1="20" y1="20" x2="44" y2="44" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
+            <line x1="44" y1="20" x2="20" y2="44" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
           </svg>
         </div>
 
@@ -89,34 +50,33 @@ const ErrorDisplay = ({
         <p>{subtext}</p>
 
         <div className="error-buttons">
-          <button className="btn danger" onClick={handleContinueClick}>
-            Continue Anyways
-          </button>
-          <button className="btn secondary" onClick={onClose}>
-            Close
-          </button>
-          <button className="btn neutral" onClick={onRetry}>
-            Retry
-          </button>
+          {baseButtons.map((btn, i) => (
+            <button
+              key={btn.label}
+              className={`btn ${btn.className} ${0 === i ? 'focused' : ''}`}
+              onClick={btn.action}
+            >
+              {btn.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       {showConfirm && (
         <div className="modal-backdrop">
           <div className="modal" ref={modalRef}>
             <h2>Are you sure?</h2>
-            <p>
-              Continuing may cause data loss or other issues. Do you really want
-              to proceed?
-            </p>
+            <p>Continuing may cause data loss or other issues. Do you really want to proceed?</p>
             <div className="modal-buttons">
-              <button className="btn secondary" onClick={handleCancel}>
-                Cancel
-              </button>
-              <button className="btn danger" onClick={handleConfirm}>
-                Yes, Continue
-              </button>
+              {modalButtons.map((btn, i) => (
+                <button
+                  key={btn.label}
+                  className={`btn ${btn.className} ${0 === i ? 'focused' : ''}`}
+                  onClick={btn.action}
+                >
+                  {btn.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>

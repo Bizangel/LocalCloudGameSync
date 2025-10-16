@@ -21,7 +21,11 @@ function App() {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
     case "Error":
-      return <ErrorDisplay error={display} />;
+      return <ErrorDisplay error={display}
+        onClose={() => { console.log("closing") }}
+        onRetry={() => { console.log("retry") }}
+        onContinue={() => {console.log("continue")}}
+      />;
     case "Conflict":
       return null;
   }
