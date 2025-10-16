@@ -122,3 +122,60 @@ p {
         transform: translateX(2px);
     }
 }
+
+/* === Modal Styles === */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease forwards;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #1b1b1b;
+    padding: 24px 28px;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    animation: slideUp 0.25s ease-out forwards;
+}
+
+.modal h2 {
+    font-size: 20px;
+    color: #ffffff;
+    margin-bottom: 10px;
+}
+
+.modal p {
+    font-size: 15px;
+    color: #cccccc;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(15px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

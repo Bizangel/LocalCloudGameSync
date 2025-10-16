@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './ErrorDisplay.css'
 
 type ErrorDisplayProps = {
@@ -7,7 +8,27 @@ type ErrorDisplayProps = {
   onRetry?: () => void
 }
 
-const ErrorDisplay = ({ error: { title, subtext }, onContinue, onClose, onRetry }: ErrorDisplayProps) => {
+const ErrorDisplay = ({
+  error: { title, subtext },
+  onContinue,
+  onClose,
+  onRetry,
+}: ErrorDisplayProps) => {
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const handleContinueClick = () => {
+    setShowConfirm(true)
+  }
+
+  const handleConfirm = () => {
+    setShowConfirm(false)
+    onContinue?.()
+  }
+
+  const handleCancel = () => {
+    setShowConfirm(false)
+  }
+
   return (
     <div className="container">
       <div className="error-wrapper">
@@ -45,7 +66,7 @@ const ErrorDisplay = ({ error: { title, subtext }, onContinue, onClose, onRetry 
         <p>{subtext}</p>
 
         <div className="error-buttons">
-          <button className="btn danger" onClick={onContinue}>
+          <button className="btn danger" onClick={handleContinueClick}>
             Continue Anyways
           </button>
           <button className="btn secondary" onClick={onClose}>
@@ -56,6 +77,27 @@ const ErrorDisplay = ({ error: { title, subtext }, onContinue, onClose, onRetry 
           </button>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>Are you sure?</h2>
+            <p>
+              Continuing may cause data loss or other issues. Do you really want
+              to proceed?
+            </p>
+            <div className="modal-buttons">
+              <button className="btn secondary" onClick={handleCancel}>
+                Cancel
+              </button>
+              <button className="btn danger" onClick={handleConfirm}>
+                Yes, Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
