@@ -31,7 +31,7 @@ const ErrorDisplay = ({
 
   const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinue?.() }, [setShowConfirm])
   const onModalCancel = useCallback(() => {setShowConfirm(false)}, [setShowConfirm])
-  const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, !showConfirm);
+  const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, undefined, !showConfirm);
 
   return (
     <div className="container">

@@ -22,7 +22,7 @@ export function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
           entry.action?.()
     }, [])
 
-    const buttonIndex = useMultiInputNavigation(modalButtons.length, onButtonClick);
+    const buttonIndex = useMultiInputNavigation(modalButtons.length, onButtonClick, onCancel);
 
     return (
         <div className="modal-backdrop">

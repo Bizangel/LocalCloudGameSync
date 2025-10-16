@@ -7,7 +7,12 @@ import { useKeyboardPress } from "./useKeyboardPress";
 
 type ConfirmCallback = (idx: number) => void;
 
-export function useMultiInputNavigation(indexCount: number, confirmationCallback: ConfirmCallback, enabled: boolean = true)
+export function useMultiInputNavigation(
+    indexCount: number,
+    confirmationCallback: ConfirmCallback,
+    cancelCallback?: () => void,
+    enabled: boolean = true
+)
 : number | null
 {
     const [navIndex, setNavIndex] = useState<null | number>(null);
@@ -20,6 +25,11 @@ export function useMultiInputNavigation(indexCount: number, confirmationCallback
         if (enabled && navIndex !== null)
             confirmationCallback(navIndex);
     }, [enabled, navIndex])
+
+    const onCancel = useCallback(() => {
+        if (enabled)
+            cancelCallback?.();
+    }, [enabled])
 
     const moveIdxCallback = useCallback((dir: Direction) => {
         if (!enabled) return;
@@ -42,6 +52,21 @@ export function useMultiInputNavigation(indexCount: number, confirmationCallback
     useKeyboardPress((key) => {
         if (key == "Enter") {
             onConfirmation();
+        }
+    }, [onConfirmation])
+
+    // Allow cancelling with both keyboard ESC and gamepad B
+     useControllerEvent(ev => {
+        if (ev.type === "buttonRelease") {
+            if (ev.button === BUTTONS.B) {
+                onCancel();
+            }
+        }
+    }, [onConfirmation])
+
+    useKeyboardPress((key) => {
+        if (key == "Escape") {
+            onCancel();
         }
     }, [onConfirmation])
 
