@@ -3,6 +3,7 @@ import './App.css'
 import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
 import { type WebViewState } from './ipc/common';
 import LoadingDisplay from './LoadingDisplay';
+import ErrorDisplay from './ErrorDisplay';
 
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
@@ -20,7 +21,7 @@ function App() {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
     case "Error":
-      return null;
+      return <ErrorDisplay error={display} />;
     case "Conflict":
       return null;
   }
