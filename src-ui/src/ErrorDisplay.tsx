@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import './ErrorDisplay.css'
 import { useLeftStickEvent } from './hooks/useLeftStickEvent';
+import { useKeyboardNavigation } from './hooks/useKeyboardArrowsEvent';
 
 type ErrorDisplayProps = {
   error: { title: string; subtext: string }
@@ -18,11 +19,12 @@ const ErrorDisplay = ({
   const [showConfirm, setShowConfirm] = useState(false)
   const modalRef = useRef<HTMLDivElement | null>(null)
 
-  // useControllerEvent((ev) => {
-  //   console.log("received:", ev)
-  // }, [])
 
   useLeftStickEvent((ev) => {
+    console.log(ev);
+  })
+
+  useKeyboardNavigation((ev) => {
     console.log(ev);
   })
 

@@ -60,3 +60,5 @@ export type ButtonStates = {
 export type AxisStates = {
   [key: number]: number;
 }
+export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+export type DirectionCallback = (event: Direction) => void;

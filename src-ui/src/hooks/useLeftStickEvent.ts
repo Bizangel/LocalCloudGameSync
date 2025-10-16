@@ -1,26 +1,16 @@
 import { useEffect, useRef } from "react";
 import { useControllerEvent } from "./useControllerEvent";
-import { GAMEPAD_EVENTS } from "../gamepad/common";
-
-// Direction types for stick navigation
-export type StickDirection = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-
-export interface StickDirectionEvent {
-  direction: StickDirection;
-  timestamp: number;
-}
-
-export type StickDirectionCallback = (event: StickDirectionEvent) => void;
+import { GAMEPAD_EVENTS, type Direction, type DirectionCallback } from "../gamepad/common";
 
 // Hook for left stick navigation with deadzone return requirement
 export function useLeftStickEvent(
-  callback: StickDirectionCallback,
+  callback: DirectionCallback,
   deps: React.DependencyList = [],
   threshold: number = 0.5 // Threshold to trigger direction
 ): void {
-  const callbackRef = useRef<StickDirectionCallback>(callback);
+  const callbackRef = useRef<DirectionCallback>(callback);
   const hasReturnedToDeadzone = useRef<boolean>(true);
-  const lastDirection = useRef<StickDirection | null>(null);
+  const lastDirection = useRef<Direction | null>(null);
 
   // Update callback ref when deps change
   useEffect(() => {
@@ -59,7 +49,7 @@ export function useLeftStickEvent(
     }
 
     // Determine direction
-    let direction: StickDirection | null = null;
+    let direction: Direction | null = null;
 
     if (isXAxis) {
       direction = axisValue > 0 ? 'RIGHT' : 'LEFT';
@@ -73,10 +63,7 @@ export function useLeftStickEvent(
       hasReturnedToDeadzone.current = false;
       lastDirection.current = direction;
 
-      callbackRef.current({
-        direction,
-        timestamp: event.timestamp,
-      });
+      callbackRef.current(direction);
     }
   }, [threshold]);
 }
