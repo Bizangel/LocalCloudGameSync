@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { CONTROLLER_EVENTS, type ButtonStates, type ControllerEvent, type ControllerEventCallback, type GamepadContextValue } from './common';
+import { CONTROLLER_EVENTS, type AxisStates, type ButtonStates, type ControllerEvent, type ControllerEventCallback, type GamepadContextValue } from './common';
 import { GamepadContext } from './gamepadContext';
 
 
@@ -9,7 +9,10 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
   const [gamepadIndex, setGamepadIndex] = useState<number | null>(null);
   const eventListeners = useRef<Set<ControllerEventCallback>>(new Set());
   const buttonStates = useRef<ButtonStates>({});
+  const axisStates = useRef<AxisStates>({});
   const animationFrame = useRef<number | null>(null);
+
+  const AXIS_DEADZONE = 0.15;
 
   // Add event listener
   const addEventListener = useCallback((callback: ControllerEventCallback): (() => void) => {
@@ -34,7 +37,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
 
     try {
       const gamepads = navigator.getGamepads();
-      const gamepad = gamepadIndex !== null ? gamepads[gamepadIndex] : null;
+      const gamepad = gamepads[gamepadIndex];
 
       if (!gamepad) {
         animationFrame.current = requestAnimationFrame(pollGamepad);
@@ -51,7 +54,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
           emitEvent({
             type: CONTROLLER_EVENTS.BUTTON_PRESS,
             button: index,
-            gamepadIndex,
+            gamepadIndex: gamepadIndex,
             timestamp: Date.now(),
           });
 
@@ -60,12 +63,33 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
           emitEvent({
             type: CONTROLLER_EVENTS.BUTTON_RELEASE,
             button: index,
-            gamepadIndex,
+            gamepadIndex: gamepadIndex,
             timestamp: Date.now(),
           });
         }
 
         buttonStates.current[index] = isPressed;
+      });
+
+      // Check axis states
+      gamepad.axes.forEach((axisValue, index) => {
+        const previousValue = axisStates.current[index] || 0;
+
+        // Apply deadzone
+        const normalizedValue = Math.abs(axisValue) < AXIS_DEADZONE ? 0 : axisValue;
+
+        // Only emit if value changed significantly (more than 0.05 difference)
+        if (Math.abs(normalizedValue - previousValue) > 0.05) {
+          emitEvent({
+            type: CONTROLLER_EVENTS.AXIS_MOVE,
+            axis: index,
+            value: normalizedValue,
+            gamepadIndex: gamepadIndex,
+            timestamp: Date.now(),
+          });
+
+          axisStates.current[index] = normalizedValue;
+        }
       });
 
       animationFrame.current = requestAnimationFrame(pollGamepad);
@@ -94,6 +118,7 @@ export function GamepadProvider({ children }: React.PropsWithChildren) {
         setGamepadIndex(null);
         setConnected(false);
         buttonStates.current = {};
+        axisStates.current = {};
       }
     };
 

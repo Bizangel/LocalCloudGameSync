@@ -29,16 +29,26 @@ export const CONTROLLER_EVENTS = {
 export type ButtonIndex = typeof BUTTONS[keyof typeof BUTTONS];
 export type ControllerEventType = typeof CONTROLLER_EVENTS[keyof typeof CONTROLLER_EVENTS];
 
-export interface ControllerEvent {
-  type: ControllerEventType;
+export type AxisMoveEvent = {
+  type: typeof CONTROLLER_EVENTS.AXIS_MOVE;
+  axis: number;
+  value: number;
+  gamepadIndex: number;
+  timestamp: number;
+}
+
+export type ButtonEvent = {
+  type: typeof CONTROLLER_EVENTS.BUTTON_PRESS | typeof CONTROLLER_EVENTS.BUTTON_RELEASE;
   button: number;
   gamepadIndex: number;
   timestamp: number;
 }
 
+export type ControllerEvent = ButtonEvent | AxisMoveEvent;
+
 export type ControllerEventCallback = (event: ControllerEvent) => void;
 
-export interface GamepadContextValue {
+export type GamepadContextValue = {
   connected: boolean;
   gamepadIndex: number | null;
   addEventListener: (callback: ControllerEventCallback) => () => void;
@@ -46,4 +56,8 @@ export interface GamepadContextValue {
 
 export type ButtonStates = {
   [key: number]: boolean;
+}
+
+export type AxisStates = {
+  [key: number]: number;
 }
