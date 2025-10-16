@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './ErrorDisplay.css'
 
 type ErrorDisplayProps = {
@@ -15,6 +15,7 @@ const ErrorDisplay = ({
   onRetry,
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
+  const modalRef = useRef<HTMLDivElement | null>(null)
 
   const handleContinueClick = () => {
     setShowConfirm(true)
@@ -28,6 +29,28 @@ const ErrorDisplay = ({
   const handleCancel = () => {
     setShowConfirm(false)
   }
+
+  // Close on click outside modal
+  useEffect(() => {
+    if (!showConfirm) return
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowConfirm(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showConfirm])
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!showConfirm) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowConfirm(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showConfirm])
 
   return (
     <div className="container">
@@ -81,7 +104,7 @@ const ErrorDisplay = ({
       {/* Confirmation Modal */}
       {showConfirm && (
         <div className="modal-backdrop">
-          <div className="modal">
+          <div className="modal" ref={modalRef}>
             <h2>Are you sure?</h2>
             <p>
               Continuing may cause data loss or other issues. Do you really want
