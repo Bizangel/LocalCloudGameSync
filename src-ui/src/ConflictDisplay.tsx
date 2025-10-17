@@ -16,29 +16,21 @@ const ConflictDisplay = ({
       <div className="conflict-wrapper">
         <div className="conflict-icon-wrapper">
           <svg
+            className="warning-icon"
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 64 64"
+            viewBox="0 0 120 120"
             width="64"
             height="64"
-            fill="none"
           >
             <path
-              d="M32 6L4 58h56L32 6z"
+              d="M60 12L8 108h104L60 12z"
               stroke="#f1c40f"
-              strokeWidth="4"
+              strokeWidth="8"
               strokeLinejoin="round"
               fill="none"
             />
-            <line
-              x1="32"
-              y1="22"
-              x2="32"
-              y2="36"
-              stroke="#f1c40f"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            <circle cx="32" cy="46" r="2.5" fill="#f1c40f" />
+            <rect x="56" y="44" width="8" height="34" rx="4" fill="#f1c40f" />
+            <circle cx="60" cy="88" r="6" fill="#f1c40f" />
           </svg>
         </div>
 

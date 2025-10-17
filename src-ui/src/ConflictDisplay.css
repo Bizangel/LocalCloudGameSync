@@ -17,6 +17,10 @@
     filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.4));
 }
 
+.conflict-icon-wrapper .warning-icon {
+    display: block;
+}
+
 @keyframes iconAppear {
     from {
         opacity: 0;
@@ -61,9 +65,9 @@
 .conflict-card-inner {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 14px;
-    text-align: center;
+    text-align: left;
 }
 
 .conflict-card:hover {
@@ -81,6 +85,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.conflict-info {
+    text-align: left;
 }
 
 .conflict-info h2 {
