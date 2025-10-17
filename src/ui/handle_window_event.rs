@@ -6,15 +6,19 @@ use wry::{
 
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
-use crate::ui::{common::WebViewEvent, sync_thread::SyncThreadCommand};
+use crate::ui::{
+    common::{ResolveErrorChoice, WebViewState},
+    sync_thread::SyncThreadCommand,
+};
 
 pub fn handle_window_event(
     event: &WindowEvent,
     control_flow: &mut ControlFlow,
     window: &Window,
     webview: &Rc<RefCell<WebView>>,
-    _sync_tx: &Sender<SyncThreadCommand>,
+    sync_tx: &Sender<SyncThreadCommand>,
     sync_thread_handle: &RefCell<Option<JoinHandle<()>>>,
+    current_state: &RefCell<WebViewState>,
 ) {
     match event {
         WindowEvent::Resized(new_size) => {
@@ -36,32 +40,19 @@ pub fn handle_window_event(
                         webview.borrow().open_devtools();
                     }
                 }
-                Key::Character("d") => {
-                    #[cfg(debug_assertions)]
-                    {
-                        use crate::ui::common::send_event_to_webview;
-                        send_event_to_webview(
-                            &webview.borrow(),
-                            &WebViewEvent::WebViewUpdate {
-                                display_text: "text-update".to_string(),
-                            },
-                        );
-                    }
-                }
                 _ => {}
             }
         }
         WindowEvent::CloseRequested => {
-            // If closing directly from window - it was a failure as sync probably didn't finish as expected.
-            let finished = sync_thread_handle
-                .borrow()
-                .as_ref()
-                .is_some_and(|t| t.is_finished());
-
-            if !finished {
-                // Disallow closing if sync isn't finished
+            // If loading - prevent closing
+            if let WebViewState::Loading = *current_state.borrow() {
                 return;
-            }
+            };
+
+            // TODO: Handle conflict state properly - as probably has diff logic
+            let _ = sync_tx.send(SyncThreadCommand::ResolveError {
+                choice: ResolveErrorChoice::Close,
+            });
 
             sync_thread_handle.borrow_mut().take().map(|t| t.join());
             *control_flow = ControlFlow::ExitWithCode(1);

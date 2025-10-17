@@ -9,7 +9,7 @@ use wry::http::Request;
 use crate::{
     config::RuntimeSyncConfig,
     ui::{
-        common::UIEvent,
+        common::{UIEvent, WebViewState},
         handle_main_loop_event::handle_main_loop_event,
         handle_webview_event::handle_webview_event,
         sync_thread::{SyncThreadCommand, sync_thread_main},
@@ -35,6 +35,7 @@ pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
         sync_thread_main(sync_config, sync_thread_event_proxy, sync_rx);
     });
     let sync_thread_handle = RefCell::new(Some(sync_thread_handle));
+    let webview_state = RefCell::new(WebViewState::Loading);
 
     event_loop.run(move |event, _, control_flow| {
         handle_main_loop_event(
@@ -44,6 +45,7 @@ pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
             &window,
             &sync_tx,
             &sync_thread_handle,
+            &webview_state,
         );
     });
 }
