@@ -1,0 +1,74 @@
+import './ConflictDisplay.css'
+
+type ConflictDisplayProps = {
+  conflict: { localModified: string; remoteModified: string }
+  onChooseLocal?: () => void
+  onChooseRemote?: () => void
+}
+
+const ConflictDisplay = ({
+  conflict: { localModified, remoteModified },
+  onChooseLocal,
+  onChooseRemote,
+}: ConflictDisplayProps) => {
+  return (
+    <div className="container">
+      <div className="conflict-wrapper">
+        <h1>Sync Conflict</h1>
+        <p className="conflict-subtext">Local changes conflict with save data on the remote. Unable to automatically determine which save version to keep</p>
+        <p className="conflict-subtext">Choose a version to keep</p>
+
+
+        <div className="conflict-options">
+          <div className="conflict-card" onClick={onChooseRemote} tabIndex={0}>
+            <div className="conflict-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M12 3a6 6 0 0 0-5.9 5.1A4 4 0 0 0 7 16h10a4 4 0 0 0 0-8h-.26A6 6 0 0 0 12 3z"
+                  stroke="#3498db"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </div>
+            <div className="conflict-info">
+              <h2>Cloud Save</h2>
+              <p>Modified {remoteModified}</p>
+            </div>
+          </div>
+
+          <div className="conflict-card" onClick={onChooseLocal} tabIndex={0}>
+            <div className="conflict-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M4 4h16v16H4z"
+                  stroke="#e67e22"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <path
+                  d="M4 9h16"
+                  stroke="#e67e22"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <div className="conflict-info">
+              <h2>Local Save</h2>
+              <p>Modified {localModified}</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="conflict-note">The option you choose not to keep will be discarded.</p>
+      </div>
+    </div>
+  )
+}
+
+export default ConflictDisplay

@@ -5,6 +5,7 @@ import { IPC, type WebViewState } from './ipc/common';
 import LoadingDisplay from './LoadingDisplay';
 import ErrorDisplay from './ErrorDisplay';
 import SuccessDisplay from './SuccessDisplay';
+import ConflictDisplay from './ConflictDisplay';
 
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
@@ -30,6 +31,11 @@ function App() {
     IPC.sendErrorResolve("continue-offline");
   }, [])
 
+  return <ConflictDisplay
+    conflict={{
+      "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
+    }}
+  />
   switch (webViewState) {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
