@@ -36,7 +36,7 @@ export type WebViewUpdateEvent = {
   sub_text: string
 }
 
-export type WebViewState = "Loading" | "Conflict" | "Error"
+export type WebViewState = "Loading" | "Conflict" | "Error" | "Success"
 
 export type WebViewStateChangeEvent = {
   state: WebViewState,

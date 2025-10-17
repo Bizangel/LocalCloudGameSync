@@ -74,6 +74,7 @@ pub enum WebViewState {
     Loading,  // Default loading state
     Conflict, // A conflict has ocurred - user needs to make choice
     Error,    // An error has ocurred - user needs to make choice - or retry.
+    Success,  // Small green check after success
 }
 
 // Events generated to be handled for the main loop

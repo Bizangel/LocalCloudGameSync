@@ -40,6 +40,8 @@ function App() {
       />;
     case "Conflict":
       return null;
+    case "Success":
+      return null;
   }
 }
 

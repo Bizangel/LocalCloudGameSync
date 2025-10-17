@@ -134,14 +134,16 @@ pub fn sync_thread_main(
             Ok(_) => {
                 // We're done - let UI thread exit with success
                 // wait 1 second so user can read - it gives nice feeling maybe remove it later?
+                send_ui_change_state(&ui_proxy, WebViewState::Success);
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
                 break; // done
             }
             Err(e) => {
                 send_ui_change_state(&ui_proxy, WebViewState::Error);
-                // Error send error
                 send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
+
+                // Await until user resolves error conflict (Either retry, close or continue)
                 let x = block_until(&sync_rx, |cmd| {
                     matches!(cmd, SyncThreadCommand::ResolveError { choice: _ })
                 });
