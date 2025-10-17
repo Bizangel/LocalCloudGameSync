@@ -50,6 +50,8 @@ export function ConfirmModal({
                   key={btn.label}
                   className={`btn ${btn.className} ${buttonIndex === i ? 'focused' : ''}`}
                   onClick={btn.action}
+                  tabIndex={-1}
+                  type="button"
                 >
                   {btn.label}
                 </button>

@@ -114,7 +114,9 @@ const ConflictDisplay = ({
           <div
             className={`conflict-card${focusedIndex === 0 ? ' focused' : ''}`}
             onClick={() => onSelectionClick('remote')}
-            tabIndex={0}
+            tabIndex={-1}
+            role="button"
+            aria-selected={focusedIndex === 0}
           >
             <div className="conflict-card-inner">
               <div className="conflict-icon">
@@ -139,7 +141,9 @@ const ConflictDisplay = ({
           <div
             className={`conflict-card${focusedIndex === 1 ? ' focused' : ''}`}
             onClick={() => onSelectionClick('local')}
-            tabIndex={0}
+            tabIndex={-1}
+            role="button"
+            aria-selected={focusedIndex === 1}
           >
             <div className="conflict-card-inner">
               <div className="conflict-icon">
