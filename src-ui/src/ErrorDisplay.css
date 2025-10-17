@@ -46,12 +46,12 @@ p {
     min-width: 120px;
     max-width: 160px;
     padding: 10px 20px;
-    border: none;
+    border: 2px solid transparent;
     border-radius: 8px;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: background 0.2s, transform 0.1s, border-color 0.2s, box-shadow 0.2s;
     outline: none;
     text-align: center;
 }
@@ -84,6 +84,11 @@ p {
     background-color: #ff5c4b;
 }
 
+.btn:hover {
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.35);
+}
+
 /* Slight press animation */
 .btn:active {
     transform: scale(0.97);
@@ -91,9 +96,9 @@ p {
 
 /* === Gamepad focus === */
 .btn.focused {
-    outline: 2px solid #3498db;
-    outline-offset: 3px;
-    box-shadow: 0 0 8px rgba(52, 152, 219, 0.6);
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.45);
     transition: all 0.15s ease;
 }
 

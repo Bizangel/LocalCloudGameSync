@@ -46,7 +46,7 @@
     border: 2px solid #2a2a2a;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     padding: 10px 18px;
 }
 
@@ -60,20 +60,18 @@
 
 .conflict-card:hover {
     border-color: #3498db;
-    background-color: #232323;
-    transform: scale(1.01);
+    background-color: #222629;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.35);
 }
 
 .conflict-card.focused {
-    border-color: #f1c40f;
-    background-color: #242322;
-    box-shadow: 0 0 10px rgba(241, 196, 15, 0.35);
-    transform: scale(1.02);
+    border-color: #3498db;
+    background-color: #222629;
+    box-shadow: 0 0 12px rgba(52, 152, 219, 0.45);
 }
 
 .conflict-card:focus {
-    outline: 2px solid #3498db;
-    outline-offset: 3px;
+    outline: none;
 }
 
 .conflict-icon {
