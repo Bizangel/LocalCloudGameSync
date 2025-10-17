@@ -31,11 +31,6 @@ function App() {
     IPC.sendErrorResolve("continue-offline");
   }, [])
 
-  return <ConflictDisplay
-    conflict={{
-      "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
-    }}
-  />
   switch (webViewState) {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
@@ -46,7 +41,11 @@ function App() {
         onContinueOffline={continueOffline}
       />;
     case "Conflict":
-      return null;
+      return <ConflictDisplay
+        conflict={{
+          "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
+        }}
+      />;
     case "Success":
       return <SuccessDisplay {...{display}} />;
   }

@@ -14,53 +14,89 @@ const ConflictDisplay = ({
   return (
     <div className="container">
       <div className="conflict-wrapper">
-        <h1>Sync Conflict</h1>
-        <p className="conflict-subtext">Local changes conflict with save data on the remote. Unable to automatically determine which save version to keep</p>
-        <p className="conflict-subtext">Choose a version to keep</p>
+        <div className="conflict-icon-wrapper">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            width="64"
+            height="64"
+            fill="none"
+          >
+            <path
+              d="M32 6L4 58h56L32 6z"
+              stroke="#f1c40f"
+              strokeWidth="4"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <line
+              x1="32"
+              y1="22"
+              x2="32"
+              y2="36"
+              stroke="#f1c40f"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <circle cx="32" cy="46" r="2.5" fill="#f1c40f" />
+          </svg>
+        </div>
 
+        <h1>Sync Conflict</h1>
+
+        <div className="conflict-subtexts">
+          <p className="conflict-subtext">
+            Local changes conflict with save data on the remote. Unable to automatically determine which save version to keep.
+          </p>
+          <p className="conflict-subtext">Choose a version to keep.</p>
+        </div>
 
         <div className="conflict-options">
           <div className="conflict-card" onClick={onChooseRemote} tabIndex={0}>
-            <div className="conflict-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M12 3a6 6 0 0 0-5.9 5.1A4 4 0 0 0 7 16h10a4 4 0 0 0 0-8h-.26A6 6 0 0 0 12 3z"
-                  stroke="#3498db"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-            <div className="conflict-info">
-              <h2>Cloud Save</h2>
-              <p>Modified {remoteModified}</p>
+            <div className="conflict-card-inner">
+              <div className="conflict-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
+                  <path
+                    d="M12 3a6 6 0 0 0-5.9 5.1A4 4 0 0 0 7 16h10a4 4 0 0 0 0-8h-.26A6 6 0 0 0 12 3z"
+                    stroke="#3498db"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+              <div className="conflict-info">
+                <h2>Remote Save</h2>
+                <p>Uploaded on {remoteModified}</p>
+              </div>
             </div>
           </div>
 
           <div className="conflict-card" onClick={onChooseLocal} tabIndex={0}>
-            <div className="conflict-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
-                <path
-                  d="M4 4h16v16H4z"
-                  stroke="#e67e22"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                <path
-                  d="M4 9h16"
-                  stroke="#e67e22"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <div className="conflict-info">
-              <h2>Local Save</h2>
-              <p>Modified {localModified}</p>
+            <div className="conflict-card-inner">
+              <div className="conflict-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
+                  <path
+                    d="M4 4h16v16H4z"
+                    stroke="#e67e22"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                  <path
+                    d="M4 9h16"
+                    stroke="#e67e22"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <div className="conflict-info">
+                <h2>Local Save</h2>
+                <p>Modified {localModified}</p>
+              </div>
             </div>
           </div>
         </div>

@@ -48,7 +48,7 @@ fn send_ui_change_state(ui_proxy: &EventLoopProxy<UIEvent>, state: WebViewState)
 pub fn do_sync(
     sync_config: &RuntimeSyncConfig,
     ui_proxy: &EventLoopProxy<UIEvent>,
-    _sync_rx: &Receiver<SyncThreadCommand>,
+    sync_rx: &Receiver<SyncThreadCommand>,
 ) -> Result<(), String> {
     send_ui_change_state(ui_proxy, WebViewState::Loading);
     let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
@@ -107,16 +107,17 @@ pub fn do_sync(
             return Ok(());
         }
         CheckSyncResult::Conflict => {
-            send_ui_display_update(
-                &ui_proxy,
-                &main_sync,
-                format!("Conflict found for key! Found: "),
-            );
+            send_ui_change_state(&ui_proxy, WebViewState::Conflict);
+            send_ui_display_update(&ui_proxy, &main_sync, format!("Conflict found!"));
 
             // await until resolve
-            // let x = block_until(&sync_rx, |cmd| {
-            //     matches!(cmd, SyncThreadCommand::ResolveConflict { choice: _ })
-            // });
+            let x = block_until(&sync_rx, |cmd| {
+                matches!(cmd, SyncThreadCommand::ResolveConflict { choice: _ })
+            });
+
+            let SyncThreadCommand::ResolveConflict { choice } = x else {
+                unreachable!("block_until guarantees this is ResolveError")
+            };
 
             // then continue
             // TODO: take action
