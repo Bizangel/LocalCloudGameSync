@@ -62,7 +62,16 @@ const ErrorDisplay = ({
       </div>
 
       {showConfirm && (
-        <ConfirmModal onCancel={onModalCancel} onConfirm={onModalConfirm}/>
+        <ConfirmModal
+          onCancel={onModalCancel}
+          onConfirm={onModalConfirm}
+          title="Continue Offline?"
+          description="Continuing offline can potentially cause a save conflict later on. Do you really want to proceed?"
+          confirmLabel="Yes, Continue"
+          cancelLabel="Cancel"
+          confirmClassName="danger"
+          cancelClassName="secondary"
+        />
       )}
     </div>
   )

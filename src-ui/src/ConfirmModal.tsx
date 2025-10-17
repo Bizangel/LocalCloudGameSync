@@ -4,17 +4,32 @@ import { useMultiInputNavigation } from "./hooks/useMultiInputNavigation"
 type ConfirmModalProps = {
     onConfirm: () => void,
     onCancel: () => void,
+    title: string,
+    description: string,
+    confirmLabel: string,
+    cancelLabel: string,
+    confirmClassName: string,
+    cancelClassName: string,
 }
 
 type ButtonEntry = {label: string, className: string, action: () => void}
-export function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
+export function ConfirmModal({
+    onConfirm,
+    onCancel,
+    title,
+    description,
+    confirmLabel,
+    cancelLabel,
+    confirmClassName,
+    cancelClassName,
+}: ConfirmModalProps) {
 
     const modalButtons: ButtonEntry[] = useMemo(() => [
-        { label: 'Cancel', className: 'secondary', action: onCancel},
+        { label: cancelLabel, className: cancelClassName, action: onCancel},
         {
-            label: 'Yes, Continue', className: 'danger', action: onConfirm,
+            label: confirmLabel, className: confirmClassName, action: onConfirm,
         },
-    ], [onConfirm, onCancel])
+    ], [onCancel, cancelClassName, cancelLabel, confirmClassName, confirmLabel, onConfirm])
 
     const onButtonClick = useCallback((idx: number) => {
         const entry = modalButtons[idx]
@@ -27,8 +42,8 @@ export function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps) {
     return (
         <div className="modal-backdrop">
           <div className="modal">
-            <h2>Are you sure?</h2>
-            <p>Continuing offline can potentially cause a save conflict later on. Do you really want to proceed?</p>
+            {title && <h2>{title}</h2>}
+            {description && <p>{description}</p>}
             <div className="modal-buttons">
               {modalButtons.map((btn, i) => (
                 <button

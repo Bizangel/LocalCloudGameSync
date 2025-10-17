@@ -45,6 +45,8 @@ function App() {
         conflict={{
           "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
         }}
+        onChooseLocal={() => { console.log("local") }}
+        onChooseRemote={() => { console.log("remote") }}
       />;
     case "Success":
       return <SuccessDisplay {...{display}} />;

@@ -1,13 +1,14 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import './ConflictDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation'
+import { ConfirmModal } from './ConfirmModal'
 
-const noop = () => {}
+type SelectionKey = 'remote' | 'local'
 
 type ConflictDisplayProps = {
   conflict: { localModified: string; remoteModified: string }
-  onChooseLocal?: () => void
-  onChooseRemote?: () => void
+  onChooseLocal: () => void
+  onChooseRemote: () => void
 }
 
 const ConflictDisplay = ({
@@ -17,27 +18,65 @@ const ConflictDisplay = ({
 }: ConflictDisplayProps) => {
   const options = useMemo(
     () => [
-      { select: onChooseRemote ?? noop },
-      { select: onChooseLocal ?? noop },
+      {
+        key: 'remote' as const,
+        perform: onChooseRemote,
+        confirmTitle: 'Use Remote Save?',
+        confirmDescription: 'This will overwrite the local save data with the remote version stored on the server.',
+        confirmLabel: 'Keep Remote Save',
+        confirmClassName: 'neutral',
+      },
+      {
+        key: 'local' as const,
+        perform: onChooseLocal,
+        confirmTitle: 'Use Local Save?',
+        confirmDescription: 'This will overwrite the server copy with your local save data.',
+        confirmLabel: 'Keep Local Save',
+        confirmClassName: 'neutral',
+      },
     ],
     [onChooseLocal, onChooseRemote]
   )
 
-  const onConfirm = useCallback(
+  const [pendingSelection, setPendingSelection] = useState<SelectionKey | null>(null)
+  const pendingOption = useMemo(
+    () => options.find((option) => option.key === pendingSelection) ?? null,
+    [options, pendingSelection]
+  )
+
+  const onSelectionClick = useCallback((selection: SelectionKey) => {
+    setPendingSelection(selection)
+  }, [])
+
+  const handleActivation = useCallback(
     (idx: number) => {
-      const entry = options[idx]
-      entry?.select()
+      const option = options[idx]
+      if (option) {
+        setPendingSelection(option.key)
+      }
     },
     [options]
   )
 
   const focusedIndex = useMultiInputNavigation(
     options.length,
-    onConfirm,
+    handleActivation,
     undefined,
-    options.length > 0,
+    pendingSelection === null && options.length > 0,
     'vertical'
   )
+
+  const handleConfirmSelection = useCallback(() => {
+    if (!pendingSelection) return
+
+    const option = options.find((entry) => entry.key === pendingSelection)
+    option?.perform()
+    setPendingSelection(null)
+  }, [options, pendingSelection])
+
+  const handleCancelSelection = useCallback(() => {
+    setPendingSelection(null)
+  }, [])
 
   return (
     <div className="container">
@@ -74,7 +113,7 @@ const ConflictDisplay = ({
         <div className="conflict-options">
           <div
             className={`conflict-card${focusedIndex === 0 ? ' focused' : ''}`}
-            onClick={onChooseRemote}
+            onClick={() => onSelectionClick('remote')}
             tabIndex={0}
           >
             <div className="conflict-card-inner">
@@ -99,7 +138,7 @@ const ConflictDisplay = ({
 
           <div
             className={`conflict-card${focusedIndex === 1 ? ' focused' : ''}`}
-            onClick={onChooseLocal}
+            onClick={() => onSelectionClick('local')}
             tabIndex={0}
           >
             <div className="conflict-card-inner">
@@ -131,6 +170,19 @@ const ConflictDisplay = ({
 
         <p className="conflict-note">The option you choose not to keep will be discarded.</p>
       </div>
+
+      {pendingOption && (
+        <ConfirmModal
+          onConfirm={handleConfirmSelection}
+          onCancel={handleCancelSelection}
+          title={pendingOption.confirmTitle}
+          description={pendingOption.confirmDescription}
+          confirmLabel={pendingOption.confirmLabel}
+          confirmClassName={pendingOption.confirmClassName}
+          cancelLabel="Cancel"
+          cancelClassName="secondary"
+        />
+      )}
     </div>
   )
 }
