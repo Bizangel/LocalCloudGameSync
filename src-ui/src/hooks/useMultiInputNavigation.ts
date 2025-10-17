@@ -7,11 +7,14 @@ import { useKeyboardPress } from "./useKeyboardPress";
 
 type ConfirmCallback = (idx: number) => void;
 
+export type NavigationOrientation = "horizontal" | "vertical";
+
 export function useMultiInputNavigation(
     indexCount: number,
     confirmationCallback: ConfirmCallback,
     cancelCallback?: () => void,
-    enabled: boolean = true
+    enabled: boolean = true,
+    orientation: NavigationOrientation = "horizontal"
 )
 : number | null
 {
@@ -32,13 +35,24 @@ export function useMultiInputNavigation(
     }, [enabled, cancelCallback])
 
     const moveIdxCallback = useCallback((dir: Direction) => {
-        if (!enabled) return;
+        if (!enabled || indexCount <= 0) return;
 
-        if (dir == "LEFT")
-            setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : 0);
-        if (dir == "RIGHT")
-            setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 1 % indexCount);
-    }, [enabled, indexCount])
+        if (orientation === "horizontal") {
+            if (dir === "LEFT") {
+                setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : 0);
+            }
+            if (dir === "RIGHT") {
+                setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 1 % indexCount);
+            }
+        } else if (orientation === "vertical") {
+            if (dir === "UP") {
+                setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : (indexCount - 1));
+            }
+            if (dir === "DOWN") {
+                setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 0);
+            }
+        }
+    }, [enabled, indexCount, orientation])
 
     // Confirm with both controller and keyboard
     useControllerEvent(ev => {
