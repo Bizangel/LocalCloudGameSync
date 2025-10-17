@@ -1,4 +1,8 @@
+import { useCallback, useMemo } from 'react'
 import './ConflictDisplay.css'
+import { useMultiInputNavigation } from './hooks/useMultiInputNavigation'
+
+const noop = () => {}
 
 type ConflictDisplayProps = {
   conflict: { localModified: string; remoteModified: string }
@@ -11,6 +15,30 @@ const ConflictDisplay = ({
   onChooseLocal,
   onChooseRemote,
 }: ConflictDisplayProps) => {
+  const options = useMemo(
+    () => [
+      { select: onChooseRemote ?? noop },
+      { select: onChooseLocal ?? noop },
+    ],
+    [onChooseLocal, onChooseRemote]
+  )
+
+  const onConfirm = useCallback(
+    (idx: number) => {
+      const entry = options[idx]
+      entry?.select()
+    },
+    [options]
+  )
+
+  const focusedIndex = useMultiInputNavigation(
+    options.length,
+    onConfirm,
+    undefined,
+    options.length > 0,
+    'vertical'
+  )
+
   return (
     <div className="container">
       <div className="conflict-wrapper">
@@ -44,7 +72,11 @@ const ConflictDisplay = ({
         </div>
 
         <div className="conflict-options">
-          <div className="conflict-card" onClick={onChooseRemote} tabIndex={0}>
+          <div
+            className={`conflict-card${focusedIndex === 0 ? ' focused' : ''}`}
+            onClick={onChooseRemote}
+            tabIndex={0}
+          >
             <div className="conflict-card-inner">
               <div className="conflict-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
@@ -65,7 +97,11 @@ const ConflictDisplay = ({
             </div>
           </div>
 
-          <div className="conflict-card" onClick={onChooseLocal} tabIndex={0}>
+          <div
+            className={`conflict-card${focusedIndex === 1 ? ' focused' : ''}`}
+            onClick={onChooseLocal}
+            tabIndex={0}
+          >
             <div className="conflict-card-inner">
               <div className="conflict-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">

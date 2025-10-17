@@ -64,6 +64,13 @@
     transform: scale(1.01);
 }
 
+.conflict-card.focused {
+    border-color: #f1c40f;
+    background-color: #242322;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.35);
+    transform: scale(1.02);
+}
+
 .conflict-card:focus {
     outline: 2px solid #3498db;
     outline-offset: 3px;
