@@ -58,7 +58,11 @@ pub fn do_sync(
 
     match check_sync_result {
         CheckSyncResult::UpToDate => {
-            send_ui_display_update(&ui_proxy, &main_sync, "Local is up to date!");
+            send_ui_display_update(
+                &ui_proxy,
+                String::from("Sync Success!"),
+                "Local is up to date!",
+            );
             return Ok(());
         }
         CheckSyncResult::FastForwardLocal => {
