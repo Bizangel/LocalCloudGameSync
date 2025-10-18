@@ -1,5 +1,5 @@
 use crate::ui::{
-    common::{UIEvent, WebViewEvent, WebViewState, send_event_to_webview},
+    common::{UIEvent, WebViewCommand, WebViewEvent, WebViewState, send_event_to_webview},
     handle_window_event::handle_window_event,
     sync_thread::SyncThreadCommand,
 };
@@ -48,6 +48,14 @@ pub fn handle_main_loop_event(
                 *control_flow = ControlFlow::ExitWithCode(1); // exit non-zero
             }
             UIEvent::WebViewCommand { command } => {
+                // if it's state change - also update internal state
+                match command {
+                    WebViewCommand::WebViewStateChange { ref state } => {
+                        *current_state.borrow_mut() = state.clone();
+                    }
+                    _ => {}
+                }
+
                 // Forward it to webview
                 send_event_to_webview(&webview.borrow(), &command);
             }
