@@ -133,4 +133,13 @@ impl TestSyncClient {
             "Remote HEAD and local data do not match"
         );
     }
+
+    pub fn assert_client_is_remote_author(&self, remote: &TestRemote) {
+        let remote_head = remote
+            .read_remote_head(&self.config.remote_sync_key)
+            .expect("Unable to read remote head")
+            .expect("Expected non-empty remote head");
+
+        assert_eq!(self._client_name, remote_head.author);
+    }
 }

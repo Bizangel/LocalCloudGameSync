@@ -21,6 +21,7 @@ pub fn initial_upload_test() {
     client.push().expect("Failed to push");
 
     // Assert push was successful.
+    client.assert_client_is_remote_author(&remote);
     client.assert_snapshot_count(&remote, 1);
     client.assert_local_data_matches_remote_data(&remote);
     client.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
@@ -51,6 +52,7 @@ pub fn happy_path_single_device() {
     client.push().expect("Failed to push post-modify");
 
     // Assert
+    client.assert_client_is_remote_author(&remote);
     client.assert_snapshot_count(&remote, 3); // Setup snapshot + before write + after write.
     client.assert_local_data_matches_remote_data(&remote);
     client.assert_local_head_and_remote_head_matches_local_data(&remote);
@@ -84,6 +86,7 @@ pub fn happy_path_multiple_devices() {
     client2.check_sync().assert_up_to_date();
     client1.assert_local_data_matches_remote_data(&remote);
     client2.assert_local_data_matches_remote_data(&remote);
+    client1.assert_client_is_remote_author(&remote); // client 1 is author - client 2 just pulled
 
     // Plays game
     client1.modify_stored_save();
@@ -104,6 +107,7 @@ pub fn happy_path_multiple_devices() {
     client2.assert_local_data_matches_remote_data(&remote);
     client2.assert_local_head_and_remote_head_matches_local_data(&remote);
     client2.assert_is_last_snapshot_restorable_and_matches_local_data(&remote);
+    client2.assert_client_is_remote_author(&remote);
 
     // Assert that old client1 data is restorable and matches
     // Assert pre edit - snapshot was also successful.
@@ -135,7 +139,7 @@ pub fn immutability_test() {
 #[test]
 pub fn weird_state_conflict() {
     // Setup
-    let _remote = TestRemote::builder().with_empty_remote().build();
+    let remote = TestRemote::builder().with_empty_remote().build();
     let client1 = TestSyncClient::builder()
         .with_client_name("client1")
         .with_sync_key("testKey")
@@ -162,6 +166,7 @@ pub fn weird_state_conflict() {
 
     // client 1 should have a save conflict
     client1.check_sync().assert_conflict();
+    client2.assert_client_is_remote_author(&remote); // conflict display for remote author should be client2
 }
 
 #[serial]
@@ -189,6 +194,7 @@ pub fn play_offline_come_back_internet() {
     client.check_sync().assert_fast_forward_remote(); // can fast forward
     client.push().expect("Unable to push post-offline");
 
+    client.assert_client_is_remote_author(&remote);
     client.assert_snapshot_count(&remote, 3); // Setup snapshot + before write + after write.
     client.assert_local_data_matches_remote_data(&remote);
     client.assert_local_head_and_remote_head_matches_local_data(&remote);
@@ -199,7 +205,7 @@ pub fn play_offline_come_back_internet() {
 #[test]
 pub fn play_offline_but_accidentally_played_on_other_device_hence_conflict() {
     // Setup
-    let _remote = TestRemote::builder().with_empty_remote().build();
+    let remote = TestRemote::builder().with_empty_remote().build();
     let mut client1 = TestSyncClient::builder()
         .with_client_name("client1")
         .with_sync_key("testKey")
@@ -235,4 +241,5 @@ pub fn play_offline_but_accidentally_played_on_other_device_hence_conflict() {
     // Back online
     client1.config.ssh_host = TEST_SSH_HOST.to_string();
     client1.check_sync().assert_conflict(); // can fast forward
+    client2.assert_client_is_remote_author(&remote); // client 2 is the one who managed to push
 }
