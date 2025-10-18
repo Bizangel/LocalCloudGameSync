@@ -11,8 +11,8 @@ use crate::{
     ui::{
         common::{UIEvent, WebViewState},
         handle_main_loop_event::handle_main_loop_event,
-        handle_webview_event::handle_webview_event,
         sync_thread::{SyncThreadCommand, sync_thread_main},
+        webview_ipc_handler_proxy::proxy_webview_event_to_event_loop,
         window_builder::build_window_with_webview,
     },
 };
@@ -23,7 +23,7 @@ pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
     let sync_thread_event_proxy = event_proxy.clone();
 
     let webview_ipc_handler = move |req: Request<String>| {
-        handle_webview_event(req, &event_proxy);
+        proxy_webview_event_to_event_loop(req, &event_proxy);
     };
 
     let (window, webview) = build_window_with_webview(&event_loop, webview_ipc_handler);

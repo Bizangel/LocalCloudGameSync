@@ -1,7 +1,7 @@
 import { useEffect } from "react"
-import { IPC, type WebViewEventMap } from "../ipc/common"
+import { IPC, type WebViewCommandMap } from "../ipc/common"
 
-export const useWebViewEvent = <K extends keyof WebViewEventMap>(key: K, callback: (ev: WebViewEventMap[K]) => void) => {
+export const useWebViewEvent = <K extends keyof WebViewCommandMap>(key: K, callback: (ev: WebViewCommandMap[K]) => void) => {
     useEffect(() => {
         const listener = (event: MessageEvent<any>) => {
             if (key in event.data) {

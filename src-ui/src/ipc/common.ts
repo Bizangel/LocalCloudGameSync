@@ -1,12 +1,11 @@
 
-const _IPCRequests = ["webview-ready", "resolve-conflict", "resolve-error"] as const;
+const _IPCRequests = ["webview-ready", "user-choice"] as const;
 type IPCRequest = typeof _IPCRequests[number];
 
-type ResolveConflictType = "pull" | "push";
-type ResolveErrorType = "close" | "retry" | "continue-offline";
+type UserChoiceType = "pull" | "push" | "close" | "retry" | "continue-offline";;
 
 type WebViewRequest = {
-  request: IPCRequest,
+  event_type: IPCRequest,
   body: any,
 }
 
@@ -16,22 +15,17 @@ function _postIPC(msg: WebViewRequest) {
 
 export const IPC = {
   sendWebViewReady() {
-    _postIPC({ request: "webview-ready", body: ""});
+    _postIPC({ event_type: "webview-ready", body: ""});
   },
 
-  sendResolveConflict(choice: ResolveConflictType) {
-    _postIPC({ request: "resolve-conflict", body: choice});
+  sendUserChoice(choice: UserChoiceType) {
+    _postIPC({ event_type: "user-choice", body: choice});
   },
-
-  sendErrorResolve(choice: ResolveErrorType) {
-    _postIPC({ request: "resolve-error", body: choice});
-  }
 };
 
 
 /// Types from Rust
-
-export type WebViewUpdateEvent = {
+export type WebViewUpdateCommand = {
   title_text: string,
   sub_text: string
 }
@@ -42,8 +36,8 @@ export type WebViewStateChangeEvent = {
   state: WebViewState,
 }
 
-export type WebViewEvent = { WebViewUpdate: WebViewUpdateEvent } | { WebViewStateChange : WebViewStateChangeEvent };
+export type WebViewCommand = { WebViewUpdate: WebViewUpdateCommand } | { WebViewStateChange : WebViewStateChangeEvent };
 
-export type WebViewEventMap = {
-  [E in WebViewEvent as keyof E]: E[keyof E];
+export type WebViewCommandMap = {
+  [E in WebViewCommand as keyof E]: E[keyof E];
 };

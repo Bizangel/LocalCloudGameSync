@@ -7,7 +7,7 @@ use wry::{
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
 use crate::ui::{
-    common::{ResolveErrorChoice, WebViewState},
+    common::{UserChoice, WebViewState},
     sync_thread::SyncThreadCommand,
 };
 
@@ -50,8 +50,8 @@ pub fn handle_window_event(
             };
 
             // TODO: Handle conflict state properly - as probably has diff logic
-            let _ = sync_tx.send(SyncThreadCommand::ResolveError {
-                choice: ResolveErrorChoice::Close,
+            let _ = sync_tx.send(SyncThreadCommand::UserChoice {
+                choice: UserChoice::Close,
             });
 
             sync_thread_handle.borrow_mut().take().map(|t| t.join());

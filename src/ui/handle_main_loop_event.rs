@@ -28,9 +28,16 @@ pub fn handle_main_loop_event(
             &current_state,
         ),
         Event::UserEvent(event) => match event {
-            UIEvent::WebViewReady => {
-                // notify sync thread so it can start working.
-                let _ = sync_tx.send(SyncThreadCommand::UIReady);
+            UIEvent::WebViewEvent { event } => {
+                match event {
+                    WebViewEvent::WebViewReady => {
+                        // notify sync thread so it can start working.
+                        let _ = sync_tx.send(SyncThreadCommand::UIReady);
+                    }
+                    WebViewEvent::UserChoice { choice } => {
+                        let _ = sync_tx.send(SyncThreadCommand::UserChoice { choice });
+                    }
+                }
             }
             UIEvent::SyncSuccessCompletedEvent => {
                 sync_thread_handle.borrow_mut().take().map(|t| t.join());
@@ -40,34 +47,9 @@ pub fn handle_main_loop_event(
                 sync_thread_handle.borrow_mut().take().map(|t| t.join());
                 *control_flow = ControlFlow::ExitWithCode(1); // exit non-zero
             }
-            UIEvent::ResolveConflict { choice } => {
-                // send to sync thread
-                let _ = sync_tx.send(SyncThreadCommand::ResolveConflict { choice });
-            }
-            UIEvent::ResolveError { choice } => {
-                // send to sync thread
-                let _ = sync_tx.send(SyncThreadCommand::ResolveError { choice });
-            }
-            UIEvent::WebViewUpdateRequest {
-                title_text,
-                sub_text,
-            } => {
+            UIEvent::WebViewCommand { command } => {
                 // Forward it to webview
-                send_event_to_webview(
-                    &webview.borrow(),
-                    &WebViewEvent::WebViewUpdate {
-                        title_text,
-                        sub_text,
-                    },
-                );
-            }
-            UIEvent::WebViewStateChangeRequest { state } => {
-                // Forward it to webview
-                *current_state.borrow_mut() = state.clone();
-                send_event_to_webview(
-                    &webview.borrow(),
-                    &WebViewEvent::WebViewStateChange { state },
-                );
+                send_event_to_webview(&webview.borrow(), &command);
             }
         },
         _ => {}

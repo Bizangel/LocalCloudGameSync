@@ -5,7 +5,7 @@ use crate::{
     },
     common::Revision,
     config::RuntimeSyncConfig,
-    ui::common::{ResolveConflictChoice, ResolveErrorChoice, UIEvent, WebViewState},
+    ui::common::{UIEvent, UserChoice, WebViewCommand, WebViewState},
 };
 use std::sync::mpsc::Receiver;
 use tao::event_loop::EventLoopProxy;
@@ -29,8 +29,7 @@ where
 #[derive(Debug, Clone)]
 pub enum SyncThreadCommand {
     UIReady,
-    ResolveConflict { choice: ResolveConflictChoice },
-    ResolveError { choice: ResolveErrorChoice },
+    UserChoice { choice: UserChoice },
 }
 
 fn send_ui_display_update(
@@ -38,15 +37,19 @@ fn send_ui_display_update(
     titletext: impl Into<String>,
     subtext: impl Into<String>,
 ) {
-    let req = UIEvent::WebViewUpdateRequest {
-        title_text: titletext.into(),
-        sub_text: subtext.into(),
+    let cmd = UIEvent::WebViewCommand {
+        command: WebViewCommand::WebViewUpdate {
+            title_text: titletext.into(),
+            sub_text: subtext.into(),
+        },
     };
-    let _ = ui_proxy.send_event(req);
+    let _ = ui_proxy.send_event(cmd);
 }
 
 fn send_ui_change_state(ui_proxy: &EventLoopProxy<UIEvent>, state: WebViewState) {
-    let _ = ui_proxy.send_event(UIEvent::WebViewStateChangeRequest { state });
+    let _ = ui_proxy.send_event(UIEvent::WebViewCommand {
+        command: WebViewCommand::WebViewStateChange { state: state },
+    });
 }
 
 fn push_to_remote(
@@ -153,13 +156,13 @@ pub fn do_sync(
 
             loop {
                 match sync_rx.recv() {
-                    Ok(SyncThreadCommand::ResolveConflict {
-                        choice: ResolveConflictChoice::Push,
+                    Ok(SyncThreadCommand::UserChoice {
+                        choice: UserChoice::Push,
                     }) => {
                         break; // do same as push above
                     }
-                    Ok(SyncThreadCommand::ResolveError {
-                        choice: ResolveErrorChoice::Close,
+                    Ok(SyncThreadCommand::UserChoice {
+                        choice: UserChoice::Close,
                     }) => {
                         return Ok(false); // user chose to stop
                     }
@@ -177,17 +180,18 @@ pub fn do_sync(
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
             send_ui_display_update(&ui_proxy, &main_sync_title, format!("Conflict found!"));
 
-            let selected_choice: ResolveConflictChoice;
+            let selected_choice: UserChoice;
             loop {
                 match sync_rx.recv() {
-                    Ok(SyncThreadCommand::ResolveConflict { choice }) => {
-                        selected_choice = choice;
-                        break;
-                    }
-                    Ok(SyncThreadCommand::ResolveError {
-                        choice: ResolveErrorChoice::Close,
-                    }) => {
-                        return Ok(false); // user is closing stop
+                    Ok(SyncThreadCommand::UserChoice { choice }) => {
+                        match choice {
+                            UserChoice::Pull | UserChoice::Push => {
+                                selected_choice = choice;
+                                break;
+                            }
+                            UserChoice::Close => return Ok(false), // user is closing stop
+                            _ => continue,                         // ignore any other
+                        }
                     }
                     Err(e) => panic!("{e}"),
                     _ => continue,
@@ -195,15 +199,14 @@ pub fn do_sync(
             }
 
             // TODO: Send info about merge choice
-
-            send_ui_change_state(&ui_proxy, WebViewState::Loading);
             match selected_choice {
-                ResolveConflictChoice::Pull => {
+                UserChoice::Pull => {
                     pull_from_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
                 }
-                ResolveConflictChoice::Push => {
+                UserChoice::Push => {
                     push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
                 }
+                _ => return Ok(false),
             }
 
             return Ok(true);
@@ -238,25 +241,38 @@ pub fn sync_thread_main(
                 send_ui_display_update(&ui_proxy, "Sync Error", format!("{}", e));
 
                 // Await until user resolves error conflict (Either retry, close or continue)
-                let x = block_until(&sync_rx, |cmd| {
-                    matches!(cmd, SyncThreadCommand::ResolveError { choice: _ })
-                });
-                let SyncThreadCommand::ResolveError { choice } = x else {
-                    unreachable!("block_until guarantees this is ResolveError")
-                };
+                let selected_choice: UserChoice;
+                loop {
+                    match sync_rx.recv() {
+                        Ok(SyncThreadCommand::UserChoice { choice }) => {
+                            match choice {
+                                UserChoice::Close
+                                | UserChoice::ContinueOffline
+                                | UserChoice::Retry => {
+                                    selected_choice = choice;
+                                    break;
+                                }
+                                _ => continue, // ignore any other
+                            }
+                        }
+                        Err(e) => panic!("{e}"),
+                        _ => continue,
+                    }
+                }
 
-                match choice {
-                    ResolveErrorChoice::Close => {
+                match selected_choice {
+                    UserChoice::Close => {
                         // Exit with 1
                         let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
                         break; // done
                     }
-                    ResolveErrorChoice::Retry => continue, // re-do outer loop
-                    ResolveErrorChoice::ContinueOffline => {
+                    UserChoice::Retry => continue, // re-do outer loop
+                    UserChoice::ContinueOffline => {
                         // Send as if sync was successful. This will exit with code 0 allowing game to launch.
                         let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
                         break; // done
                     }
+                    _ => continue, // unexpected choice - just continue
                 }
             }
         }

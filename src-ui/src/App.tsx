@@ -20,24 +20,24 @@ function App() {
     setDisplay({ title: ev.title_text, subtext: ev.sub_text });
   }, [setDisplay]));
 
-  const closeUnsuccess = useCallback(() => {
-    IPC.sendErrorResolve("close");
+  const sendClose = useCallback(() => {
+    IPC.sendUserChoice("close");
   }, [])
 
-  const retrySync = useCallback(() => {
-    IPC.sendErrorResolve("retry");
+  const sendRetrySync = useCallback(() => {
+    IPC.sendUserChoice("retry");
   }, [])
 
-  const continueOffline = useCallback(() => {
-    IPC.sendErrorResolve("continue-offline");
+  const sendContinueOffline = useCallback(() => {
+    IPC.sendUserChoice("continue-offline");
   }, [])
 
   const sendPush = useCallback(() => {
-    IPC.sendResolveConflict("push");
+    IPC.sendUserChoice("push");
   }, [])
 
   const sendPull = useCallback(() => {
-    IPC.sendResolveConflict("pull");
+    IPC.sendUserChoice("pull");
   }, [])
 
   switch (webViewState) {
@@ -45,9 +45,9 @@ function App() {
       return <LoadingDisplay {...{display}}/>
     case "Error":
       return <ErrorDisplay error={display}
-        onClose={closeUnsuccess}
-        onRetry={retrySync}
-        onContinueOffline={continueOffline}
+        onClose={sendClose}
+        onRetry={sendRetrySync}
+        onContinueOffline={sendContinueOffline}
       />;
     case "Conflict":
       return <ConflictDisplay
@@ -65,7 +65,7 @@ function App() {
           title={display.title}
           subtext={display.subtext}
           onConfirmPush={sendPush}
-          onCancel={closeUnsuccess}
+          onCancel={sendClose}
         />
       )
   }
