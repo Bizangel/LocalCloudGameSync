@@ -49,7 +49,7 @@ pub fn do_sync(
     sync_config: &RuntimeSyncConfig,
     ui_proxy: &EventLoopProxy<UIEvent>,
     sync_rx: &Receiver<SyncThreadCommand>,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     send_ui_change_state(ui_proxy, WebViewState::Loading);
     let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
     send_ui_display_update(&ui_proxy, &main_sync, "Checking remote...");
@@ -63,7 +63,7 @@ pub fn do_sync(
                 String::from("Sync Success!"),
                 "Local is up to date!",
             );
-            return Ok(());
+            return Ok(true);
         }
         CheckSyncResult::FastForwardLocal => {
             send_ui_display_update(
@@ -81,7 +81,7 @@ pub fn do_sync(
                 },
             )?;
 
-            return Ok(());
+            return Ok(true);
         }
         CheckSyncResult::FastForwardRemote => {
             send_ui_display_update(
@@ -90,7 +90,7 @@ pub fn do_sync(
                 "Local changes found - saving to remote...",
             );
             // TODO: take action
-            return Ok(());
+            return Ok(true);
         }
         CheckSyncResult::RemoteEmpty => {
             send_ui_display_update(
@@ -104,25 +104,38 @@ pub fn do_sync(
 
             // TODO: take action
 
-            return Ok(());
+            return Ok(true);
         }
         CheckSyncResult::Conflict => {
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
             send_ui_display_update(&ui_proxy, &main_sync, format!("Conflict found!"));
 
-            // await until resolve
-            let x = block_until(&sync_rx, |cmd| {
-                matches!(cmd, SyncThreadCommand::ResolveConflict { choice: _ })
-            });
-
-            let SyncThreadCommand::ResolveConflict { choice } = x else {
-                unreachable!("block_until guarantees this is ResolveError")
-            };
+            let selected_choice: ResolveConflictChoice;
+            loop {
+                match sync_rx.recv() {
+                    Ok(SyncThreadCommand::ResolveConflict { choice }) => {
+                        selected_choice = choice;
+                        break;
+                    }
+                    Ok(SyncThreadCommand::ResolveError {
+                        choice: ResolveErrorChoice::Close,
+                    }) => {
+                        return Ok(false); // user is closing stop
+                    }
+                    Err(e) => panic!("{e}"),
+                    _ => continue,
+                }
+            }
 
             // then continue
             // TODO: take action
 
-            return Ok(());
+            match selected_choice {
+                ResolveConflictChoice::Pull => {}
+                ResolveConflictChoice::Push => {}
+            }
+
+            return Ok(true);
         }
     }
 }
@@ -136,7 +149,12 @@ pub fn sync_thread_main(
     block_until(&sync_rx, |cmd| matches!(cmd, SyncThreadCommand::UIReady));
     loop {
         match do_sync(&sync_config, &ui_proxy, &sync_rx) {
-            Ok(_) => {
+            Ok(success) => {
+                if !success {
+                    let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
+                    break; // done
+                }
+
                 // We're done - let UI thread exit with success
                 // wait 1 second so user can read - it gives nice feeling maybe remove it later?
                 send_ui_change_state(&ui_proxy, WebViewState::Success);
