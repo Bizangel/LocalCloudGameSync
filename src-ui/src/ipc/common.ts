@@ -27,7 +27,9 @@ export const IPC = {
 /// Types from Rust
 export type WebViewUpdateCommand = {
   title_text: string,
-  sub_text: string
+  sub_text: string,
+  conflict_local_display_time?: string,
+  conflict_remote_display_time?: string,
 }
 
 export type WebViewState = "Loading" | "Conflict" | "Error" | "Success" | "RemoteEmpty"

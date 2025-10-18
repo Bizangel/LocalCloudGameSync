@@ -10,14 +10,18 @@ import RemoteEmptyDisplay from './RemoteEmptyDisplay';
 
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
-  const [display, setDisplay] = useState({ title: "Loading", subtext: "" });
+  const [display, setDisplay] = useState({ title: "Loading", subtext: "", conflictLocalModified: "", conflictRemoteUploaded: "" });
 
   useWebViewEvent("WebViewStateChange", useCallback((ev) => {
     setWebViewState(ev.state);
   }, [setWebViewState]));
 
   useWebViewEvent("WebViewUpdate", useCallback((ev) => {
-    setDisplay({ title: ev.title_text, subtext: ev.sub_text });
+    setDisplay({
+      title: ev.title_text, subtext: ev.sub_text,
+      conflictLocalModified: ev.conflict_local_display_time ?? "",
+      conflictRemoteUploaded: ev.conflict_remote_display_time ?? ""
+    });
   }, [setDisplay]));
 
   const sendClose = useCallback(() => {
@@ -51,8 +55,9 @@ function App() {
       />;
     case "Conflict":
       return <ConflictDisplay
+        title={display.title}
         conflict={{
-          "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
+          "localModified": display.conflictLocalModified, "remoteModified": display.conflictRemoteUploaded
         }}
         onChooseLocal={sendPush} // keep local -> so push into remote
         onChooseRemote={sendPull} // keep remote -> so pull from remote

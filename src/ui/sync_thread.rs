@@ -41,6 +41,25 @@ fn send_ui_display_update(
         command: WebViewCommand::WebViewUpdate {
             title_text: titletext.into(),
             sub_text: subtext.into(),
+            conflict_local_display_time: None,
+            conflict_remote_display_time: None,
+        },
+    };
+    let _ = ui_proxy.send_event(cmd);
+}
+
+fn send_ui_display_update_conflict(
+    ui_proxy: &EventLoopProxy<UIEvent>,
+    title: &str,
+    local: &Revision,
+    remote: &Revision,
+) {
+    let cmd = UIEvent::WebViewCommand {
+        command: WebViewCommand::WebViewUpdate {
+            title_text: title.to_string(),
+            sub_text: "".to_string(),
+            conflict_local_display_time: Some(local.time_display_str()),
+            conflict_remote_display_time: Some(remote.time_display_str()),
         },
     };
     let _ = ui_proxy.send_event(cmd);
@@ -178,7 +197,12 @@ pub fn do_sync(
         }
         CheckSyncResult::Conflict { local, remote } => {
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
-            send_ui_display_update(&ui_proxy, &main_sync_title, format!("Conflict found!"));
+            send_ui_display_update_conflict(
+                &ui_proxy,
+                &format!("{} Conflict Found", sync_config.remote_sync_key),
+                &local,
+                &remote,
+            );
 
             let selected_choice: UserChoice;
             loop {

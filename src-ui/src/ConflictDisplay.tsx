@@ -6,12 +6,14 @@ import { ConfirmModal } from './ConfirmModal'
 type SelectionKey = 'remote' | 'local'
 
 type ConflictDisplayProps = {
+  title: string,
   conflict: { localModified: string; remoteModified: string }
   onChooseLocal: () => void
   onChooseRemote: () => void
 }
 
 const ConflictDisplay = ({
+  title,
   conflict: { localModified, remoteModified },
   onChooseLocal,
   onChooseRemote,
@@ -101,7 +103,7 @@ const ConflictDisplay = ({
           </svg>
         </div>
 
-        <h1>Sync Conflict</h1>
+        <h1>{title}</h1>
 
         <div className="conflict-subtexts">
           <p className="conflict-subtext">
@@ -166,7 +168,7 @@ const ConflictDisplay = ({
               </div>
               <div className="conflict-info">
                 <h2>Local Save</h2>
-                <p>Modified {localModified}</p>
+                <p>Modified on {localModified}</p>
               </div>
             </div>
           </div>

@@ -57,6 +57,20 @@ impl Revision {
 
         Ok(Revision { hash, timestamp })
     }
+
+    pub fn time_display_str(&self) -> String {
+        let timestamp_as_int = i64::try_from(self.timestamp).unwrap_or_default();
+        let utctime = DateTime::from_timestamp_secs(timestamp_as_int)
+            .and_then(|dt| {
+                Some(
+                    dt.with_timezone(&Local)
+                        .format("%a %e %b %Y at %H:%M:%S")
+                        .to_string(),
+                )
+            })
+            .unwrap_or_default();
+        return utctime;
+    }
 }
 
 #[cfg(test)]

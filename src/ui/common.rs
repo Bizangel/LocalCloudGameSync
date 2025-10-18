@@ -46,6 +46,8 @@ pub enum WebViewCommand {
     WebViewUpdate {
         title_text: String,
         sub_text: String,
+        conflict_local_display_time: Option<String>,
+        conflict_remote_display_time: Option<String>,
     },
 
     WebViewStateChange {
