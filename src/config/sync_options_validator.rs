@@ -3,6 +3,15 @@ use globset::{GlobBuilder, GlobSetBuilder};
 use super::*;
 use crate::utils::generate_display_name_from_key;
 
+fn validate_remote_root_path(save_key: &str) -> bool {
+    for c in save_key.chars() {
+        if !(c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '/' || c == '.') {
+            return false;
+        }
+    }
+    !save_key.is_empty()
+}
+
 impl SyncOptionsJson {
     pub fn validate(self) -> Result<ValidatedSyncOptions, String> {
         // 0. Validate client name is not empty.
@@ -29,6 +38,12 @@ impl SyncOptionsJson {
 
         if self.remote_sync_root.ends_with("/") {
             return Err(format!("remoteSyncRoot must not end with /"));
+        }
+
+        if !validate_remote_root_path(&self.remote_sync_root) {
+            return Err(format!(
+                "Unfortunately due to current limitations remoteSyncRoot must only contains [A-Za-z0-9_-/.] characters"
+            ));
         }
 
         // 4. Validate local_head_folder
@@ -117,5 +132,22 @@ impl SyncEntry {
             save_ignore_glob: ignore_globset,
             display_name: display,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_remote_root_validation() {
+        assert!(!validate_remote_root_path("/some/Save Games/")); // disallowed spaces
+        assert!(validate_remote_root_path("/media/game_saves/")); // allowed underscores
+        assert!(validate_remote_root_path("/media1/game_saves2/")); // allow numbers
+        assert!(validate_remote_root_path("/media1/game.saves/")); // allow dots
+
+        assert!(validate_remote_root_path("/media/game-saves/"));
+        assert!(!validate_remote_root_path("/media/*other/"));
+        assert!(!validate_remote_root_path("/media#1/*other/"));
     }
 }

@@ -5,6 +5,9 @@
 
 # Limitations
 
+- Remote Server is always expected to be a compliant linux machine with bash.
+- Remote path is limited to alphanumeric and -_/ characters.
+
 - Current remote SSH logic does not check remote saves. This means we trust that REMOTE_HEAD will always accurately represent the state of the remote save.
 - - If you wish to modify the save files directly on the remote - please update the REMOTE_HEAD hash accordingly (Not recommmended).
 - - If you wish to modify save files - simply modify them on a local client - then use the client to push to the remote (Recommended).
