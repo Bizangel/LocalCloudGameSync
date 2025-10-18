@@ -157,7 +157,10 @@ pub fn do_sync(
                     _ => continue,
                 }
             }
+
+            send_ui_change_state(&ui_proxy, WebViewState::Loading);
             push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
+
             return Ok(true);
         }
         CheckSyncResult::Conflict => {
