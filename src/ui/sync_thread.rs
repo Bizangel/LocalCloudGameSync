@@ -1,5 +1,8 @@
 use crate::{
-    commands::{CheckSyncResult, check_sync_command, pull_command_with_update_callback},
+    commands::{
+        CheckSyncResult, check_sync_command, pull_command_with_update_callback,
+        push_command_with_update_callback,
+    },
     config::RuntimeSyncConfig,
     ui::common::{ResolveConflictChoice, ResolveErrorChoice, UIEvent, WebViewState},
 };
@@ -57,6 +60,7 @@ pub fn do_sync(
     let (check_sync_result, remote_head) = check_sync_command(&sync_config, false)?;
 
     match check_sync_result {
+        // === Success Up To Date Logic
         CheckSyncResult::UpToDate => {
             send_ui_display_update(
                 &ui_proxy,
@@ -65,6 +69,7 @@ pub fn do_sync(
             );
             return Ok(true);
         }
+        // === Pulling from remote logic ===
         CheckSyncResult::FastForwardLocal => {
             send_ui_display_update(
                 &ui_proxy,
@@ -81,15 +86,37 @@ pub fn do_sync(
                 },
             )?;
 
+            send_ui_display_update(
+                &ui_proxy,
+                String::from("Sync Success!"),
+                "Downloaded from remote!",
+            );
+
             return Ok(true);
         }
+        // === Pushing to remote cleanup ===
         CheckSyncResult::FastForwardRemote => {
             send_ui_display_update(
                 &ui_proxy,
                 &main_sync,
                 "Local changes found - saving to remote...",
             );
-            // TODO: take action
+
+            let push_title = format!("Uploading {} save files", sync_config.remote_sync_key);
+            push_command_with_update_callback(
+                sync_config,
+                remote_head.as_ref().map(|head| head.hash.as_str()),
+                |txt| {
+                    send_ui_display_update(&ui_proxy, &push_title, &txt);
+                },
+            )?;
+
+            send_ui_display_update(
+                &ui_proxy,
+                String::from("Sync Success!"),
+                "Uploaded to remote!",
+            );
+
             return Ok(true);
         }
         CheckSyncResult::RemoteEmpty => {
