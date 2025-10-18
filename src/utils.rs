@@ -83,3 +83,21 @@ pub fn generate_display_name_from_key(save_key: &str) -> String {
 
     display_name
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_name_fallback_test() {
+        assert_eq!(generate_display_name_from_key("wargroove"), "Wargroove");
+        assert_eq!(
+            generate_display_name_from_key("hollow_knight"),
+            "Hollow Knight"
+        );
+        assert_eq!(
+            generate_display_name_from_key("hollow-knight-silksong"),
+            "Hollow Knight Silksong"
+        );
+    }
+}
