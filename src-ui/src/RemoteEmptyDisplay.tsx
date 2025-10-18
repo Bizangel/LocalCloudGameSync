@@ -16,7 +16,6 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
     () => [
       {
         label: 'Confirm Push',
-        description: 'Upload local saves to the remote server.',
         action: onConfirmPush ?? noop,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
@@ -45,7 +44,6 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
       },
       {
         label: 'Close',
-        description: 'Review setup before syncing.',
         action: onCancel ?? noop,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
@@ -79,7 +77,7 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
     [actions]
   )
 
-  const focusedIndex = useMultiInputNavigation(actions.length, handleActivation, onCancel, true, 'horizontal')
+  const focusedIndex = useMultiInputNavigation(actions.length, handleActivation, onCancel, true, 'vertical')
 
   return (
     <div className="container">
@@ -133,7 +131,6 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
                 <div className="remote-empty-icon-wrapper">{entry.icon}</div>
                 <div className="remote-empty-info">
                   <h2>{entry.label}</h2>
-                  <p>{entry.description}</p>
                 </div>
               </div>
             </div>

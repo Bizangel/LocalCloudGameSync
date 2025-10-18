@@ -34,11 +34,10 @@
 
 .remote-empty-options {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
-    max-width: 520px;
-    flex-wrap: wrap;
-    justify-content: center;
+    max-width: 320px;
 }
 
 .remote-empty-card {
@@ -47,17 +46,15 @@
     border-radius: 10px;
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-    padding: 12px 20px;
-    min-width: 220px;
-    max-width: 260px;
+    padding: 10px 16px;
 }
 
 .remote-empty-card-inner {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     gap: 12px;
-    text-align: center;
+    text-align: left;
 }
 
 .remote-empty-card:hover {
@@ -80,17 +77,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .remote-empty-info h2 {
     color: #fff;
-    font-size: 18px;
-    margin: 0;
-}
-
-.remote-empty-info p {
-    color: #a8a8a8;
-    font-size: 14px;
+    font-size: 17px;
     margin: 0;
 }
 
