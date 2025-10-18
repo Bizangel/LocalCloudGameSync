@@ -79,6 +79,36 @@ fn push_to_remote(
     Ok(())
 }
 
+fn pull_from_remote(
+    sync_config: &RuntimeSyncConfig,
+    ui_proxy: &EventLoopProxy<UIEvent>,
+    remote_head: &Option<Revision>,
+    main_sync_title: &str,
+) -> Result<(), String> {
+    send_ui_display_update(
+        &ui_proxy,
+        main_sync_title,
+        "Newer version on remote found! Downloading from remote...",
+    );
+
+    let pull_title = format!("Downloading {} save files", sync_config.remote_sync_key);
+    pull_command_with_update_callback(
+        sync_config,
+        remote_head.as_ref().map(|head| head.hash.as_str()),
+        |txt| {
+            send_ui_display_update(&ui_proxy, &pull_title, &txt);
+        },
+    )?;
+
+    send_ui_display_update(
+        &ui_proxy,
+        String::from("Sync Success!"),
+        "Downloaded from remote!",
+    );
+
+    Ok(())
+}
+
 pub fn do_sync(
     sync_config: &RuntimeSyncConfig,
     ui_proxy: &EventLoopProxy<UIEvent>,
@@ -102,27 +132,7 @@ pub fn do_sync(
         }
         // === Pulling from remote logic ===
         CheckSyncResult::FastForwardLocal => {
-            send_ui_display_update(
-                &ui_proxy,
-                &main_sync_title,
-                "Newer version on remote found! Downloading from remote...",
-            );
-
-            let pull_title = format!("Downloading {} save files", sync_config.remote_sync_key);
-            pull_command_with_update_callback(
-                sync_config,
-                remote_head.as_ref().map(|head| head.hash.as_str()),
-                |txt| {
-                    send_ui_display_update(&ui_proxy, &pull_title, &txt);
-                },
-            )?;
-
-            send_ui_display_update(
-                &ui_proxy,
-                String::from("Sync Success!"),
-                "Downloaded from remote!",
-            );
-
+            push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
             return Ok(true);
         }
         // === Pushing to remote cleanup ===
@@ -184,12 +194,14 @@ pub fn do_sync(
                 }
             }
 
-            // then continue
-            // TODO: take action
-
+            send_ui_change_state(&ui_proxy, WebViewState::Loading);
             match selected_choice {
-                ResolveConflictChoice::Pull => {}
-                ResolveConflictChoice::Push => {}
+                ResolveConflictChoice::Pull => {
+                    pull_from_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
+                }
+                ResolveConflictChoice::Push => {
+                    push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
+                }
             }
 
             return Ok(true);

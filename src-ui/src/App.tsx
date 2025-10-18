@@ -32,8 +32,12 @@ function App() {
     IPC.sendErrorResolve("continue-offline");
   }, [])
 
-  const confirmRemotePush = useCallback(() => {
+  const sendPush = useCallback(() => {
     IPC.sendResolveConflict("push");
+  }, [])
+
+  const sendPull = useCallback(() => {
+    IPC.sendResolveConflict("pull");
   }, [])
 
   switch (webViewState) {
@@ -50,8 +54,8 @@ function App() {
         conflict={{
           "localModified": "Thursday, October 21 2021 7:32PM", "remoteModified": "Thursday, October 20 2021 7:00PM"
         }}
-        onChooseLocal={() => { console.log("local") }}
-        onChooseRemote={() => { console.log("remote") }}
+        onChooseLocal={sendPush} // keep local -> so push into remote
+        onChooseRemote={sendPull} // keep remote -> so pull from remote
       />;
     case "Success":
       return <SuccessDisplay {...{display}} />;
@@ -60,7 +64,7 @@ function App() {
         <RemoteEmptyDisplay
           title={display.title}
           subtext={display.subtext}
-          onConfirmPush={confirmRemotePush}
+          onConfirmPush={sendPush}
           onCancel={closeUnsuccess}
         />
       )
