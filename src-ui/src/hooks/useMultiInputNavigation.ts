@@ -46,10 +46,10 @@ export function useMultiInputNavigation(
             }
         } else if (orientation === "vertical") {
             if (dir === "UP") {
-                setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : (indexCount - 1));
+                setNavIndex(idx => idx !== null ? ((idx - 1 + indexCount) % indexCount) : 0);
             }
             if (dir === "DOWN") {
-                setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 0);
+                setNavIndex(idx => idx !== null ? ((idx + 1) % indexCount) : 1 % indexCount);
             }
         }
     }, [enabled, indexCount, orientation])

@@ -2,13 +2,11 @@ import { useCallback, useMemo } from 'react'
 import './RemoteEmptyDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation'
 
-const noop = () => {}
-
 type RemoteEmptyDisplayProps = {
   title: string
-  subtext?: string
-  onConfirmPush?: () => void
-  onCancel?: () => void
+  subtext: string
+  onConfirmPush: () => void
+  onCancel: () => void
 }
 
 const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteEmptyDisplayProps) => {
@@ -16,7 +14,7 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
     () => [
       {
         label: 'Confirm Push',
-        action: onConfirmPush ?? noop,
+        action: onConfirmPush,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
             <path
@@ -44,7 +42,7 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
       },
       {
         label: 'Close',
-        action: onCancel ?? noop,
+        action: onCancel,
         icon: (
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="9" stroke="#aaaaaa" strokeWidth="2" />
@@ -111,11 +109,9 @@ const RemoteEmptyDisplay = ({ title, subtext, onConfirmPush, onCancel }: RemoteE
 
         <h1>{title}</h1>
 
-        {(subtext ?? '').length > 0 && (
-          <div className="remote-empty-subtexts">
-            <p className="remote-empty-subtext">{subtext}</p>
-          </div>
-        )}
+        <div className="remote-empty-subtexts">
+          <p className="remote-empty-subtext">{subtext}</p>
+        </div>
 
         <div className="remote-empty-options">
           {actions.map((entry, index) => (
