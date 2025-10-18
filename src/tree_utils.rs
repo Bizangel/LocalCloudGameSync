@@ -30,14 +30,16 @@ fn digest_file(path: &Path) -> io::Result<String> {
 }
 
 /// Recursively walk a folder, calling `callback` for each file (not for dirs).
-fn walk_folder_rec<F>(
+fn walk_folder_rec_internal<F, G>(
     root: &Path,
     path: &Path,
     ignore_globset: &GlobSet,
     callback: &mut F,
+    ignore_callback: &mut G,
 ) -> Result<(), String>
 where
     F: FnMut(&Path, &Path) -> Result<(), String>,
+    G: FnMut(&Path, &Path) -> Result<(), String>,
 {
     for entry in fs::read_dir(path).map_err(|e| format!("Unable to read directory\n{}", e))? {
         let entry = entry.map_err(|e| format!("Error listing directory entry: {}", e))?;
@@ -57,23 +59,38 @@ where
             continue;
         }
 
-        // Skip ignored paths
-        if ignore_globset.is_match(&path) {
-            continue;
-        }
-
         if path.is_dir() {
             // recurse into subdir
-            walk_folder_rec(&root, &path, ignore_globset, callback)?;
+            walk_folder_rec_internal(&root, &path, ignore_globset, callback, ignore_callback)?;
         } else if path.is_file() {
             let rel = path
                 .strip_prefix(root)
                 .map_err(|e| format!("Error processing file {}\n{}", path.display(), e))?;
+
+            // Skip ignored paths
+            if ignore_globset.is_match(&path) {
+                ignore_callback(&path, &rel)?;
+                continue;
+            }
+
             callback(&path, &rel)?;
         }
     }
 
     Ok(())
+}
+
+fn walk_folder_rec<F>(
+    root: &Path,
+    path: &Path,
+    ignore_globset: &GlobSet,
+    callback: &mut F,
+) -> Result<(), String>
+where
+    F: FnMut(&Path, &Path) -> Result<(), String>,
+{
+    let mut ignored_noop = |_path: &Path, _rel: &Path| -> Result<(), String> { Ok(()) };
+    walk_folder_rec_internal(root, path, ignore_globset, callback, &mut ignored_noop)
 }
 
 fn walk_folder<F>(path: &Path, ignore_globset: &GlobSet, callback: &mut F) -> Result<(), String>
@@ -180,4 +197,35 @@ pub fn delete_tmp_sync_directory() -> Result<(), String> {
 
     fs::remove_dir_all(tmpdir).map_err(|e| format!("Unable to delete directory\n{}", e))?;
     Ok(())
+}
+
+pub fn collect_matching_files(
+    path: &Path,
+    ignore_globset: &GlobSet,
+) -> Result<(Vec<String>, Vec<String>), String> {
+    let mut tracked_files = Vec::new();
+    let mut ignored_entries = Vec::new();
+
+    let mut tracked_callback = |_: &Path, rel: &Path| -> Result<(), String> {
+        tracked_files.push(rel.to_string_lossy().to_string());
+        Ok(())
+    };
+
+    let mut ignored_callback = |_: &Path, rel: &Path| -> Result<(), String> {
+        ignored_entries.push(rel.to_string_lossy().to_string());
+        Ok(())
+    };
+
+    walk_folder_rec_internal(
+        path,
+        path,
+        ignore_globset,
+        &mut tracked_callback,
+        &mut ignored_callback,
+    )?;
+
+    tracked_files.sort();
+    ignored_entries.sort();
+
+    Ok((tracked_files, ignored_entries))
 }

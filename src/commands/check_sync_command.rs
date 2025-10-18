@@ -3,7 +3,7 @@ use crate::config::RuntimeSyncConfig;
 use crate::local_head;
 use crate::remote_save_client::{RemoteSaveClient, get_default_remote_save_client};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CheckSyncResult {
     FastForwardRemote,
     FastForwardLocal,
@@ -18,10 +18,15 @@ struct SyncStatusCheckInput<'a> {
     remote_head: &'a Option<Revision>,
 }
 
-pub fn check_sync_command(
-    sync_config: &RuntimeSyncConfig,
-) -> Result<(CheckSyncResult, Option<Revision>), String> {
-    let client = get_default_remote_save_client(&sync_config);
+struct SyncCheckContext {
+    result: CheckSyncResult,
+    remote_head: Option<Revision>,
+    local_head: Option<Revision>,
+    current_head: Revision,
+}
+
+fn compute_sync_context(sync_config: &RuntimeSyncConfig) -> Result<SyncCheckContext, String> {
+    let client = get_default_remote_save_client(sync_config);
     let local_head = local_head::read_local_head(&sync_config)?;
     let current_head =
         local_head::generate_current_head(&sync_config.local_save_folder, &sync_config)?;
@@ -33,24 +38,38 @@ pub fn check_sync_command(
         remote_head: &remote_head,
     });
 
-    let local_head_display = local_head
+    Ok(SyncCheckContext {
+        result: check_res,
+        remote_head,
+        local_head,
+        current_head,
+    })
+}
+
+fn log_sync_result(context: &SyncCheckContext, sync_config: &RuntimeSyncConfig) {
+    let local_head_display = context
+        .local_head
         .as_ref()
         .map(|x| x.to_string())
         .unwrap_or_default();
 
-    let remote_head_display = remote_head
+    let remote_head_display = context
+        .remote_head
         .as_ref()
         .map(|x| x.to_string())
         .unwrap_or_default();
 
-    match check_res {
+    match &context.result {
         CheckSyncResult::UpToDate => {
-            println!("Already up to date! Current revision {current_head}")
+            println!(
+                "Already up to date! Current revision {}",
+                context.current_head
+            )
         }
         CheckSyncResult::RemoteEmpty => {
             println!(
                 "Remote is empty - no HEAD found for remote for key {}. Will upload local head.\nLocal: {} ",
-                sync_config.remote_sync_key, current_head
+                sync_config.remote_sync_key, context.current_head
             )
         }
         CheckSyncResult::FastForwardLocal => {
@@ -61,20 +80,31 @@ pub fn check_sync_command(
         }
         CheckSyncResult::FastForwardRemote => println!(
             "Remote is out of date - new version locally - will push to remote.\nLocal: {} Remote: {}",
-            current_head, remote_head_display
+            context.current_head, remote_head_display
         ),
-        CheckSyncResult::Conflict {
-            ref local,
-            ref remote,
-        } => {
+        CheckSyncResult::Conflict { local, remote } => {
             println!(
                 "Conflict found - both remote and local have updates.\nLocal: {} Remote: {}",
-                &local, &remote
+                local, remote
             )
         }
     }
+}
 
-    Ok((check_res, remote_head))
+pub fn check_sync_command(
+    sync_config: &RuntimeSyncConfig,
+) -> Result<(CheckSyncResult, Option<Revision>), String> {
+    let context = compute_sync_context(sync_config)?;
+    log_sync_result(&context, sync_config);
+
+    Ok((context.result.clone(), context.remote_head.clone()))
+}
+
+pub fn check_sync_command_quiet(
+    sync_config: &RuntimeSyncConfig,
+) -> Result<(CheckSyncResult, Option<Revision>), String> {
+    let context = compute_sync_context(sync_config)?;
+    Ok((context.result, context.remote_head))
 }
 
 fn determine_sync_status(input: &SyncStatusCheckInput) -> CheckSyncResult {

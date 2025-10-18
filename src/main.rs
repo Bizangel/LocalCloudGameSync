@@ -50,8 +50,10 @@ enum Commands {
         #[arg(long)]
         if_head: Option<String>,
     },
-    /// Shows what CLI would do without actually performing the sync for the given game key settings.
-    Dryrun,
+    /// Shows the files tracked and ignored for a given game key. Useful for verifying game configs.
+    Files {
+        sync_key: String,
+    },
     /// Opens the default config file
     OpenConfig,
     /// Ensures that the configs folder exists to start placing save sync configurations.
@@ -83,7 +85,10 @@ fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
             let _ = ui_loop_main(sync_config); // UI code takes from here - so returns don't matter.
             Ok(())
         }
-        Commands::Dryrun => Err(String::from("Dryrun isn't implemented yet!")),
+        Commands::Files { sync_key } => {
+            let sync_config = load_config(&sync_key, args.config.as_deref())?;
+            commands::files_command(&sync_config)
+        }
     };
 
     return command_res;
