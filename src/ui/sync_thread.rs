@@ -83,7 +83,7 @@ fn push_to_remote(
         "Local changes found - saving to remote...",
     );
 
-    let push_title = format!("Uploading {} save files", sync_config.remote_sync_key);
+    let push_title = format!("Uploading {} save files", sync_config.game_display_name);
     push_command_with_update_callback(
         sync_config,
         remote_head.as_ref().map(|head| head.hash.as_str()),
@@ -113,7 +113,7 @@ fn pull_from_remote(
         "Newer version on remote found! Downloading from remote...",
     );
 
-    let pull_title = format!("Downloading {} save files", sync_config.remote_sync_key);
+    let pull_title = format!("Downloading {} save files", sync_config.game_display_name);
     pull_command_with_update_callback(
         sync_config,
         remote_head.as_ref().map(|head| head.hash.as_str()),
@@ -137,7 +137,7 @@ pub fn do_sync(
     sync_rx: &Receiver<SyncThreadCommand>,
 ) -> Result<bool, String> {
     send_ui_change_state(ui_proxy, WebViewState::Loading);
-    let main_sync_title = format!("Syncing {}", sync_config.remote_sync_key);
+    let main_sync_title = format!("Syncing {}", sync_config.game_display_name);
     send_ui_display_update(&ui_proxy, &main_sync_title, "Checking remote...");
 
     let (check_sync_result, remote_head) = check_sync_command(&sync_config)?;
@@ -199,7 +199,7 @@ pub fn do_sync(
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
             send_ui_display_update_conflict(
                 &ui_proxy,
-                &format!("{} Conflict Found", sync_config.remote_sync_key),
+                &format!("{} Conflict Found", sync_config.game_display_name),
                 &local,
                 &remote,
             );
