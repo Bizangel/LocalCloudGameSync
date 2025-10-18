@@ -3,6 +3,19 @@
 
 - TODO
 
+# Limitations
+
+- Current remote SSH logic does not check remote saves. This means we trust that REMOTE_HEAD will always accurately represent the state of the remote save.
+- - If you wish to modify the save files directly on the remote - please update the REMOTE_HEAD hash accordingly (Not recommmended).
+- - If you wish to modify save files - simply modify them on a local client - then use the client to push to the remote (Recommended).
+
+- Current ignore glob filters are not respected during when pulling from remote.
+- - This means If a client accidentally pushed a `.log` file - this will be included in your folder in the next pull.
+- - This shouldn't affect sync logic as the `.log` will still be ignored when calculating the hash - but if this happen for more important files like `.cfg` files it might override local config accidentally.
+
+
+
+
 # Setup for SSH Save user:
 
 
