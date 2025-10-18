@@ -46,7 +46,7 @@ impl SshOutput {
 /// Runs a command over SSH and returns both the ExitStatus and stdout
 pub fn ssh_command(host: &str, port: u32, cmd: &str) -> Result<SshOutput, String> {
     let mut command = Command::new("ssh");
-    command.arg(host).args(["-p", &port.to_string()]);
+    command.args(["-p", &port.to_string()]).arg(host);
 
     #[cfg(feature = "insecure-ssh")]
     {
