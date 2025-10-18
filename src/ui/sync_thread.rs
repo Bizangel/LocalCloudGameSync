@@ -82,6 +82,7 @@ fn push_to_remote(
     remote_head: &Option<Revision>,
     main_sync_title: &str,
 ) -> Result<(), String> {
+    send_ui_change_state(ui_proxy, WebViewState::Loading);
     send_ui_display_update(
         &ui_proxy,
         main_sync_title,
@@ -112,6 +113,7 @@ fn pull_from_remote(
     remote_head: &Option<Revision>,
     main_sync_title: &str,
 ) -> Result<(), String> {
+    send_ui_change_state(ui_proxy, WebViewState::Loading);
     send_ui_display_update(
         &ui_proxy,
         main_sync_title,
@@ -227,7 +229,6 @@ pub fn do_sync(
                 }
             }
 
-            // TODO: Send info about merge choice
             match selected_choice {
                 UserChoice::Pull => {
                     pull_from_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
