@@ -1,8 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use globset::GlobSet;
-
 use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
 use crate::tree_utils::tree_folder_hash;
@@ -40,11 +38,15 @@ pub fn read_local_head(sync_config: &RuntimeSyncConfig) -> Result<Option<Revisio
     Ok(Some(rev))
 }
 
-pub fn generate_current_head(path: &Path, ignore_globset: &GlobSet) -> Result<Revision, String> {
-    let (hash, unix_ts) = tree_folder_hash(path, ignore_globset)?;
+pub fn generate_current_head(
+    path: &Path,
+    sync_config: &RuntimeSyncConfig,
+) -> Result<Revision, String> {
+    let (hash, unix_ts) = tree_folder_hash(path, &sync_config.ignore_globset)?;
 
     return Ok(Revision {
         hash: hash,
         timestamp: unix_ts,
+        author: sync_config.client_name.clone(),
     });
 }

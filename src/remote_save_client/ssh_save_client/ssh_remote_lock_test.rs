@@ -10,6 +10,8 @@ const TEST_SSH_PORT: u32 = 2222;
 
 fn get_test_config() -> RuntimeSyncConfig {
     return RuntimeSyncConfig {
+        client_name: "test-client".to_string(),
+        game_display_name: "test-game".to_string(),
         ssh_host: TEST_SSH_HOST.to_string(),
         ssh_port: TEST_SSH_PORT,
         remote_sync_key: "test-key".to_string(),

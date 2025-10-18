@@ -60,3 +60,26 @@ pub fn get_unix_timestamp_secs() -> u64 {
         .unwrap()
         .as_secs();
 }
+
+pub fn generate_display_name_from_key(save_key: &str) -> String {
+    // Replace underscores and hyphens with spaces, then capitalize each word
+    let mut display_name = save_key
+        .replace(['-', '_'], " ")
+        .split_whitespace()
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    // Optional: ensure the result isn't empty (just in case)
+    if display_name.is_empty() {
+        display_name = save_key.to_string();
+    }
+
+    display_name
+}

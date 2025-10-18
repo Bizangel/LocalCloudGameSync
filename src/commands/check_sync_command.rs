@@ -23,10 +23,8 @@ pub fn check_sync_command(
 ) -> Result<(CheckSyncResult, Option<Revision>), String> {
     let client = get_default_remote_save_client(&sync_config);
     let local_head = local_head::read_local_head(&sync_config)?;
-    let current_head = local_head::generate_current_head(
-        &sync_config.local_save_folder,
-        &sync_config.ignore_globset,
-    )?;
+    let current_head =
+        local_head::generate_current_head(&sync_config.local_save_folder, &sync_config)?;
     let remote_head = client.get_remote_head()?;
 
     let check_res = determine_sync_status(&SyncStatusCheckInput {
@@ -117,6 +115,7 @@ mod tests {
         return Revision {
             hash: "37df39a38c2f58ec73c309c67702de4d".to_string(),
             timestamp: 1760783380,
+            author: "".to_string(),
         };
     }
 
@@ -124,6 +123,7 @@ mod tests {
         return Revision {
             hash: "ffa755f72c21bf534f54d3a2c75d4ed7".to_string(),
             timestamp: 1760789280,
+            author: "".to_string(),
         };
     }
 
@@ -131,6 +131,7 @@ mod tests {
         return Revision {
             hash: "19db3f74548df29b73598c030066b09d".to_string(),
             timestamp: 1760793480,
+            author: "".to_string(),
         };
     }
 

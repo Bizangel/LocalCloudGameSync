@@ -5,6 +5,10 @@ use std::path::PathBuf;
 /// Runtime config which contains all the necessary values for performing sync actions -
 /// generated from the global and specific sync config key given.
 pub struct RuntimeSyncConfig {
+    // Display names
+    pub client_name: String,
+    pub game_display_name: String,
+
     pub ssh_host: String,
     pub ssh_port: u32,
     pub remote_sync_key: String,
@@ -32,6 +36,7 @@ impl RuntimeSyncConfig {
         let validated_sync_entry = sync_entry.validate()?;
 
         return Ok(RuntimeSyncConfig {
+            client_name: validated_options.client_name,
             ssh_host: validated_options.ssh_host,
             ssh_port: validated_options.ssh_port,
             remote_sync_root: validated_options.remote_sync_root,
@@ -40,6 +45,7 @@ impl RuntimeSyncConfig {
             remote_sync_key: validated_sync_entry.remote_sync_key,
             local_save_folder: validated_sync_entry.save_folder_path,
             ignore_globset: validated_sync_entry.save_ignore_glob,
+            game_display_name: validated_sync_entry.display_name,
         });
     }
 }

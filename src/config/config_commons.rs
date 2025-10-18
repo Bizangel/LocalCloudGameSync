@@ -84,6 +84,7 @@ pub fn init_default_config() -> Result<PathBuf, String> {
     })?;
 
     let default_global_options = SyncOptionsJson {
+        client_name: "".to_string(),
         ssh_host: String::from(""),
         ssh_port: Some(22),
         remote_sync_root: String::from(""),

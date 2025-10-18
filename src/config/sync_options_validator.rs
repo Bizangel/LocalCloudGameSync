@@ -1,9 +1,17 @@
 use globset::{Glob, GlobSetBuilder};
 
 use super::*;
+use crate::utils::generate_display_name_from_key;
 
 impl SyncOptionsJson {
     pub fn validate(self) -> Result<ValidatedSyncOptions, String> {
+        // 0. Validate client name is not empty.
+        if self.client_name.is_empty() {
+            return Err(format!(
+                "clientName key must not be empty in global config!"
+            ));
+        }
+
         // 1. Validate Ssh Host
         if self.ssh_host.is_empty() {
             return Err(format!("sshHost key must not be empty in global config!"));
@@ -45,6 +53,7 @@ impl SyncOptionsJson {
         // 5. Do NOT validate sync entries. Validate sync entries will be validated when runtime config is created.
         // This is intended - so that a misconfigured sync entry from one game does not break others.
         Ok(ValidatedSyncOptions {
+            client_name: self.client_name,
             ssh_host: self.ssh_host,
             ssh_port: self.ssh_port.unwrap_or(DEFAULT_SSH_PORT),
             remote_sync_root: self.remote_sync_root,
@@ -93,10 +102,17 @@ impl SyncEntry {
             .build()
             .map_err(|e| format!("Unable to build globset\n{}", e))?;
 
+        // 4. Create display name from remote key if not specified
+        let display: String = self
+            .display_name
+            .clone()
+            .unwrap_or_else(|| generate_display_name_from_key(&self.remote_sync_key));
+
         Ok(ValidatedSyncEntry {
             remote_sync_key: self.remote_sync_key.clone(),
             save_folder_path: expanded_save_path.to_path_buf(),
             save_ignore_glob: ignore_globset,
+            display_name: display,
         })
     }
 }

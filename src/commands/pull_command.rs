@@ -52,8 +52,7 @@ where
     // NOTE: This does not check or rely on current local uploaded logic - this only relies on existing runtime-based logic.
     update_callback("Comparing with local files...".to_string());
     // Any decision handling logic should be handled by other commands.
-    let local_hash =
-        generate_current_head(&sync_config.local_save_folder, &sync_config.ignore_globset)?;
+    let local_hash = generate_current_head(&sync_config.local_save_folder, &sync_config)?;
     if remote_head == local_hash {
         println!("Local is up-to-date found same HEAD: {local_hash}");
         // Ensure head is up to date anyways. Maybe we reached that good new state manually

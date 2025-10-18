@@ -44,7 +44,7 @@ impl TestRemote {
 
         let headstr = String::from_utf8(folderbytes)
             .map_err(|e| format!("Invalid UTF8 bytes reading remote head hash\n{e}"))?;
-
+        let headstr = headstr.trim();
         let rev = Revision::deserialize(&headstr)?;
         Ok(Some(rev))
     }

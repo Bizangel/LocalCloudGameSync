@@ -73,6 +73,8 @@ impl TestSyncClientBuilder {
         }
 
         let cfg = RuntimeSyncConfig {
+            game_display_name: "Test Videogame".to_string(),
+            client_name: client_name.clone(),
             ssh_host: TEST_SSH_HOST.to_string(),
             ssh_port: TEST_SSH_PORT,
             remote_sync_key: key,

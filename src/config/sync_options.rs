@@ -7,6 +7,7 @@ pub struct ValidatedSyncEntry {
     pub remote_sync_key: String,
     pub save_folder_path: PathBuf,
     pub save_ignore_glob: GlobSet,
+    pub display_name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -15,9 +16,11 @@ pub struct SyncEntry {
     pub remote_sync_key: String,
     pub save_folder_path: String,
     pub save_ignore_glob: Vec<String>,
+    pub display_name: Option<String>,
 }
 
 pub struct ValidatedSyncOptions {
+    pub client_name: String,
     pub ssh_host: String,
     pub ssh_port: u32,
     pub remote_sync_root: String,
@@ -28,6 +31,7 @@ pub struct ValidatedSyncOptions {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SyncOptionsJson {
+    pub client_name: String,
     pub ssh_host: String,
     pub ssh_port: Option<u32>,
     pub remote_sync_root: String,
