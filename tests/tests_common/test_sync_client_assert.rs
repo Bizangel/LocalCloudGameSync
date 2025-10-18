@@ -15,23 +15,23 @@ pub trait AssertableCheckSyncResult {
 
 impl AssertableCheckSyncResult for CheckSyncResult {
     fn assert_up_to_date(&self) {
-        assert_eq!(*self, CheckSyncResult::UpToDate);
+        assert!(matches!(*self, CheckSyncResult::UpToDate));
     }
 
     fn assert_remote_empty(&self) {
-        assert_eq!(*self, CheckSyncResult::RemoteEmpty);
+        assert!(matches!(*self, CheckSyncResult::RemoteEmpty));
     }
 
     fn assert_fast_forward_remote(&self) {
-        assert_eq!(*self, CheckSyncResult::FastForwardRemote);
+        assert!(matches!(*self, CheckSyncResult::FastForwardRemote));
     }
 
     fn assert_fast_forward_local(&self) {
-        assert_eq!(*self, CheckSyncResult::FastForwardLocal);
+        assert!(matches!(*self, CheckSyncResult::FastForwardLocal));
     }
 
     fn assert_conflict(&self) {
-        assert_eq!(*self, CheckSyncResult::Conflict);
+        assert!(matches!(*self, CheckSyncResult::Conflict { .. }));
     }
 }
 
@@ -95,7 +95,7 @@ impl TestSyncClient {
             .restore_restic_snapshot(&self.config.remote_sync_key, &snapshots[snapshot_idx].id)
             .expect("Failed to restore snapshot");
 
-        let restored_hash = tree_folder_hash(
+        let (restored_hash, _unix_ts) = tree_folder_hash(
             &restored
                 .path
                 .join(REMOTE_SAVES_FOLDER_NAME)

@@ -80,11 +80,13 @@ impl TestRemote {
     }
 
     pub fn get_remote_hash(&self, sync_key: &str) -> String {
-        tree_folder_hash(
+        let (hash, _ts) = tree_folder_hash(
             &self.remote_saves_folder_path.join(sync_key),
             &GlobSet::empty(),
         )
-        .unwrap()
+        .unwrap();
+
+        return hash;
     }
 
     pub fn reset_remote(&mut self) {

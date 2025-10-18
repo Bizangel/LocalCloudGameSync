@@ -25,7 +25,7 @@ impl TestSyncClient {
     pub fn check_sync(&self) -> CheckSyncResult {
         println!("--- [{}] Starting Check-Sync ---- ", self._client_name);
         let (res, _remote_head) =
-            check_sync_command(&self.config, false).expect("Unable to check sync status");
+            check_sync_command(&self.config).expect("Unable to check sync status");
         println!("--- [{}] Finished Check-Sync ---- ", self._client_name);
         return res;
     }
@@ -45,7 +45,9 @@ impl TestSyncClient {
     }
 
     pub fn get_local_hash(&self) -> String {
-        tree_folder_hash(&self.config.local_save_folder, &GlobSet::empty()).unwrap()
+        let (hash, _ts) =
+            tree_folder_hash(&self.config.local_save_folder, &GlobSet::empty()).unwrap();
+        return hash;
     }
 
     // Helper for simulating game play

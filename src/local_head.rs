@@ -6,7 +6,6 @@ use globset::GlobSet;
 use crate::common::Revision;
 use crate::config::RuntimeSyncConfig;
 use crate::tree_utils::tree_folder_hash;
-use crate::utils::get_unix_timestamp_secs;
 
 pub fn get_local_head_filepath(sync_config: &RuntimeSyncConfig) -> PathBuf {
     return sync_config
@@ -42,10 +41,10 @@ pub fn read_local_head(sync_config: &RuntimeSyncConfig) -> Result<Option<Revisio
 }
 
 pub fn generate_current_head(path: &Path, ignore_globset: &GlobSet) -> Result<Revision, String> {
-    let hash = tree_folder_hash(path, ignore_globset)?;
+    let (hash, unix_ts) = tree_folder_hash(path, ignore_globset)?;
 
     return Ok(Revision {
         hash: hash,
-        timestamp: get_unix_timestamp_secs(),
+        timestamp: unix_ts,
     });
 }

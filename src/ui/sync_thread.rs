@@ -118,7 +118,7 @@ pub fn do_sync(
     let main_sync_title = format!("Syncing {}", sync_config.remote_sync_key);
     send_ui_display_update(&ui_proxy, &main_sync_title, "Checking remote...");
 
-    let (check_sync_result, remote_head) = check_sync_command(&sync_config, false)?;
+    let (check_sync_result, remote_head) = check_sync_command(&sync_config)?;
 
     match check_sync_result {
         // === Success Up To Date Logic
@@ -173,7 +173,7 @@ pub fn do_sync(
 
             return Ok(true);
         }
-        CheckSyncResult::Conflict => {
+        CheckSyncResult::Conflict { local, remote } => {
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
             send_ui_display_update(&ui_proxy, &main_sync_title, format!("Conflict found!"));
 
@@ -193,6 +193,8 @@ pub fn do_sync(
                     _ => continue,
                 }
             }
+
+            // TODO: Send info about merge choice
 
             send_ui_change_state(&ui_proxy, WebViewState::Loading);
             match selected_choice {

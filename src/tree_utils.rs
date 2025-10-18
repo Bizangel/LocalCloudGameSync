@@ -4,6 +4,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Read};
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const CHECKSUM_BUFFER_MB: usize = 5;
 
@@ -11,7 +12,7 @@ const CHECKSUM_BUFFER_MB: usize = 5;
 fn digest_file(path: &Path) -> io::Result<String> {
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
-    let mut buffer = vec![0u8; CHECKSUM_BUFFER_MB * 1024 * 1024]; // 5 MB buffer
+    let mut buffer = vec![0u8; CHECKSUM_BUFFER_MB * 1024 * 1024];
     let mut chunk_digests: Vec<u8> = Vec::new();
 
     loop {
@@ -84,15 +85,31 @@ where
 
 // TODO: Make multi-threaded for faster checksumming - usually fine for save folders
 /// Recursively compute the MD5 checksum of a folder
-pub fn tree_folder_hash(path: &Path, ignore_globset: &GlobSet) -> Result<String, String> {
+/// Also returns the last modification timestamp of all files (max modified time).
+pub fn tree_folder_hash(path: &Path, ignore_globset: &GlobSet) -> Result<(String, u64), String> {
     let mut entries: Vec<(String, String)> = Vec::new();
-    walk_folder(path, &ignore_globset, &mut |filepath, rel_path| {
-        let file_md5 = digest_file(&filepath)
+    let mut latest_mod_time: SystemTime = UNIX_EPOCH;
+
+    walk_folder(path, ignore_globset, &mut |filepath, rel_path| {
+        // Compute hash
+        let file_md5 = digest_file(filepath)
             .map_err(|e| format!("Error checksumming file {}\n{}", filepath.display(), e))?;
         entries.push((rel_path.to_string_lossy().to_string(), file_md5));
+
+        // Update last modified timestamp
+        let metadata = filepath
+            .metadata()
+            .map_err(|e| format!("Unable to read metadata for {}\n{}", filepath.display(), e))?;
+        if let Ok(modified) = metadata.modified() {
+            if modified > latest_mod_time {
+                latest_mod_time = modified;
+            }
+        }
+
         Ok(())
     })?;
 
+    // Sort entries by name for deterministic hash
     entries.sort_by(|a, b| a.0.cmp(&b.0));
 
     let combined = entries
@@ -101,7 +118,15 @@ pub fn tree_folder_hash(path: &Path, ignore_globset: &GlobSet) -> Result<String,
         .collect::<Vec<_>>()
         .join("\n");
 
-    Ok(format!("{:x}", md5::compute(combined.as_bytes())))
+    let folder_hash = format!("{:x}", md5::compute(combined.as_bytes()));
+
+    // Convert latest_mod_time to UNIX timestamp (seconds)
+    let latest_mod_unix = latest_mod_time
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| format!("SystemTime before UNIX_EPOCH: {}", e))?
+        .as_secs();
+
+    Ok((folder_hash, latest_mod_unix))
 }
 
 fn get_tmp_sync_directory() -> PathBuf {

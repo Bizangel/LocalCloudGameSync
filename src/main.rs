@@ -27,10 +27,6 @@ enum Commands {
     /// Determines whether local be fast-forwarded - or remote can be fast-forwarded - or whether there's a conflict that requires manual approval.
     CheckSync {
         sync_key: String,
-
-        /// Displays status short and concise - useful for scripting.
-        #[arg(long)]
-        short: bool,
     },
 
     /// Perform uni-directional pull process for the given game key. Pulls the remote version overwriting the local folder.
@@ -68,9 +64,9 @@ enum Commands {
 
 fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
     let command_res: Result<(), String> = match args.command {
-        Commands::CheckSync { sync_key, short } => {
+        Commands::CheckSync { sync_key } => {
             let sync_config = load_config(&sync_key, args.config.as_deref())?;
-            commands::check_sync_command(&sync_config, short).map(|_| ())
+            commands::check_sync_command(&sync_config).map(|_| ())
         }
         Commands::Push { sync_key, if_head } => {
             let sync_config = load_config(&sync_key, args.config.as_deref())?;
