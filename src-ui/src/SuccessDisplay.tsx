@@ -1,10 +1,10 @@
 import './SuccessDisplay.css'
 
 type SuccessDisplayProps = {
-  display: { title: string; subtext: string }
+  display: { title_text: string; sub_text: string }
 }
 
-const SuccessDisplay = ({ display: { title, subtext } }: SuccessDisplayProps) => {
+const SuccessDisplay = ({ display: { title_text, sub_text } }: SuccessDisplayProps) => {
   return (
     <div className="container">
       <div className="success-wrapper">
@@ -35,8 +35,8 @@ const SuccessDisplay = ({ display: { title, subtext } }: SuccessDisplayProps) =>
             />
           </svg>
         </div>
-        <h1>{title}</h1>
-        <p>{subtext}</p>
+        <h1>{title_text}</h1>
+        <p>{sub_text}</p>
       </div>
     </div>
   )

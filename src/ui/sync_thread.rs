@@ -5,7 +5,7 @@ use crate::{
     },
     common::Revision,
     config::RuntimeSyncConfig,
-    ui::common::{UIEvent, UserChoice, WebViewCommand, WebViewState},
+    ui::common::{ConflictDisplayInfo, UIEvent, UserChoice, WebViewCommand, WebViewState},
 };
 use std::sync::mpsc::Receiver;
 use tao::event_loop::EventLoopProxy;
@@ -41,8 +41,7 @@ fn send_ui_display_update(
         command: WebViewCommand::WebViewUpdate {
             title_text: titletext.into(),
             sub_text: subtext.into(),
-            conflict_local_display_time: None,
-            conflict_remote_display_time: None,
+            conflict_info: None,
         },
     };
     let _ = ui_proxy.send_event(cmd);
@@ -54,12 +53,18 @@ fn send_ui_display_update_conflict(
     local: &Revision,
     remote: &Revision,
 ) {
+    let conflict_info = ConflictDisplayInfo {
+        local_modified_time: local.time_display_str(),
+        remote_uploaded_time: remote.time_display_str(),
+        local_author: local.author.clone(),
+        remote_author: remote.author.clone(),
+    };
+
     let cmd = UIEvent::WebViewCommand {
         command: WebViewCommand::WebViewUpdate {
             title_text: title.to_string(),
             sub_text: "".to_string(),
-            conflict_local_display_time: Some(local.time_display_str()),
-            conflict_remote_display_time: Some(remote.time_display_str()),
+            conflict_info: Some(conflict_info),
         },
     };
     let _ = ui_proxy.send_event(cmd);

@@ -23,13 +23,18 @@ export const IPC = {
   },
 };
 
+export type ConflictDisplayInfo = {
+    local_modified_time: string,
+    remote_uploaded_time: string,
+    local_author: string,
+    remote_author: string,
+}
 
 /// Types from Rust
 export type WebViewUpdateCommand = {
   title_text: string,
   sub_text: string,
-  conflict_local_display_time?: string,
-  conflict_remote_display_time?: string,
+  conflict_info?: ConflictDisplayInfo,
 }
 
 export type WebViewState = "Loading" | "Conflict" | "Error" | "Success" | "RemoteEmpty"

@@ -4,14 +4,14 @@ import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
 import { ConfirmModal } from './ConfirmModal';
 
 type ErrorDisplayProps = {
-  error: { title: string; subtext: string }
+  error: { title_text: string; sub_text: string }
   onContinueOffline?: () => void
   onClose?: () => void
   onRetry?: () => void
 }
 
 const ErrorDisplay = ({
-  error: { title, subtext },
+  error: { title_text, sub_text },
   onContinueOffline,
   onClose,
   onRetry,
@@ -45,8 +45,8 @@ const ErrorDisplay = ({
           </svg>
         </div>
 
-        <h1>{title}</h1>
-        <p>{subtext}</p>
+        <h1>{title_text}</h1>
+        <p>{sub_text}</p>
 
         <div className="error-buttons">
           {baseButtons.map((btn, i) => (

@@ -40,14 +40,21 @@ pub enum UIEvent {
     WebViewCommand { command: WebViewCommand },
 }
 
+#[derive(Serialize, Debug, Clone)]
+pub struct ConflictDisplayInfo {
+    pub local_modified_time: String,
+    pub remote_uploaded_time: String,
+    pub local_author: String,
+    pub remote_author: String,
+}
+
 // Commands generated from rust code to be processed to the webview.
 #[derive(Serialize, Debug, Clone)]
 pub enum WebViewCommand {
     WebViewUpdate {
         title_text: String,
         sub_text: String,
-        conflict_local_display_time: Option<String>,
-        conflict_remote_display_time: Option<String>,
+        conflict_info: Option<ConflictDisplayInfo>,
     },
 
     WebViewStateChange {

@@ -2,19 +2,20 @@ import { useCallback, useMemo, useState } from 'react'
 import './ConflictDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation'
 import { ConfirmModal } from './ConfirmModal'
+import type { ConflictDisplayInfo } from './ipc/common'
 
 type SelectionKey = 'remote' | 'local'
 
 type ConflictDisplayProps = {
   title: string,
-  conflict: { localModified: string; remoteModified: string }
+  conflict_info: ConflictDisplayInfo,
   onChooseLocal: () => void
   onChooseRemote: () => void
 }
 
 const ConflictDisplay = ({
   title,
-  conflict: { localModified, remoteModified },
+  conflict_info: { local_modified_time, remote_author, remote_uploaded_time },
   onChooseLocal,
   onChooseRemote,
 }: ConflictDisplayProps) => {
@@ -135,7 +136,7 @@ const ConflictDisplay = ({
               </div>
               <div className="conflict-info">
                 <h2>Remote Save</h2>
-                <p>Uploaded on {remoteModified}</p>
+                <p>Uploaded on {remote_uploaded_time} by {remote_author}</p>
               </div>
             </div>
           </div>
@@ -168,7 +169,7 @@ const ConflictDisplay = ({
               </div>
               <div className="conflict-info">
                 <h2>Local Save</h2>
-                <p>Modified on {localModified}</p>
+                <p>Modified on {local_modified_time}</p>
               </div>
             </div>
           </div>

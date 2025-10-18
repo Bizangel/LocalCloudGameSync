@@ -1,27 +1,25 @@
 import { useCallback, useState } from 'react'
 import './App.css'
 import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
-import { IPC, type WebViewState } from './ipc/common';
+import { IPC, type WebViewState, type WebViewUpdateCommand } from './ipc/common';
 import LoadingDisplay from './LoadingDisplay';
 import ErrorDisplay from './ErrorDisplay';
 import SuccessDisplay from './SuccessDisplay';
 import ConflictDisplay from './ConflictDisplay';
 import RemoteEmptyDisplay from './RemoteEmptyDisplay';
 
+type DisplayType = WebViewUpdateCommand
+
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
-  const [display, setDisplay] = useState({ title: "Loading", subtext: "", conflictLocalModified: "", conflictRemoteUploaded: "" });
+  const [display, setDisplay] = useState<DisplayType>({ title_text: "Loading", sub_text: "", conflict_info: undefined});
 
   useWebViewEvent("WebViewStateChange", useCallback((ev) => {
     setWebViewState(ev.state);
   }, [setWebViewState]));
 
   useWebViewEvent("WebViewUpdate", useCallback((ev) => {
-    setDisplay({
-      title: ev.title_text, subtext: ev.sub_text,
-      conflictLocalModified: ev.conflict_local_display_time ?? "",
-      conflictRemoteUploaded: ev.conflict_remote_display_time ?? ""
-    });
+    setDisplay(ev);
   }, [setDisplay]));
 
   const sendClose = useCallback(() => {
@@ -48,17 +46,18 @@ function App() {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
     case "Error":
-      return <ErrorDisplay error={display}
+      return <ErrorDisplay
+        error={display}
         onClose={sendClose}
         onRetry={sendRetrySync}
         onContinueOffline={sendContinueOffline}
       />;
     case "Conflict":
+      if (display.conflict_info === undefined)
+        return null;
       return <ConflictDisplay
-        title={display.title}
-        conflict={{
-          "localModified": display.conflictLocalModified, "remoteModified": display.conflictRemoteUploaded
-        }}
+        title={display.title_text}
+        conflict_info={display.conflict_info}
         onChooseLocal={sendPush} // keep local -> so push into remote
         onChooseRemote={sendPull} // keep remote -> so pull from remote
       />;
@@ -67,8 +66,8 @@ function App() {
     case "RemoteEmpty":
       return (
         <RemoteEmptyDisplay
-          title={display.title}
-          subtext={display.subtext}
+          title={display.title_text}
+          subtext={display.sub_text}
           onConfirmPush={sendPush}
           onCancel={sendClose}
         />
