@@ -38,8 +38,18 @@ pub fn expand_config_placeholders(input: &str) -> String {
     let mut result = input.to_string();
 
     let placeholders = [
-        ("{{HOME}}", env::var("HOME").unwrap_or_default()),
+        (
+            "{{HOME}}",
+            dirs::home_dir()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string(),
+        ),
         ("{{APPDATA}}", env::var("APPDATA").unwrap_or_default()),
+        (
+            "{{LOCALAPPDATA}}",
+            env::var("LOCALAPPDATA").unwrap_or_default(),
+        ),
         (
             "{{STEAM_COMMON}}",
             get_steam_common()

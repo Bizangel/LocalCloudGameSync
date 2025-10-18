@@ -38,7 +38,7 @@ pub fn get_steam_path() -> Result<PathBuf, String> {
 #[cfg(target_os = "windows")]
 pub fn get_steam_path() -> Result<PathBuf, String> {
     // echo %programfiles(x86)
-    let programfilepath = std::env::var("programfilesx86").map_err(|x| x.to_string())?;
+    let programfilepath = std::env::var("programfiles(x86)").map_err(|x| x.to_string())?;
     let programfiles = path::Path::new(&programfilepath);
 
     Ok(programfiles.join("Steam"))
