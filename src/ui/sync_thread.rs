@@ -3,6 +3,7 @@ use crate::{
         CheckSyncResult, check_sync_command, pull_command_with_update_callback,
         push_command_with_update_callback,
     },
+    common::Revision,
     config::RuntimeSyncConfig,
     ui::common::{ResolveConflictChoice, ResolveErrorChoice, UIEvent, WebViewState},
 };
@@ -48,14 +49,44 @@ fn send_ui_change_state(ui_proxy: &EventLoopProxy<UIEvent>, state: WebViewState)
     let _ = ui_proxy.send_event(UIEvent::WebViewStateChangeRequest { state });
 }
 
+fn push_to_remote(
+    sync_config: &RuntimeSyncConfig,
+    ui_proxy: &EventLoopProxy<UIEvent>,
+    remote_head: &Option<Revision>,
+    main_sync_title: &str,
+) -> Result<(), String> {
+    send_ui_display_update(
+        &ui_proxy,
+        main_sync_title,
+        "Local changes found - saving to remote...",
+    );
+
+    let push_title = format!("Uploading {} save files", sync_config.remote_sync_key);
+    push_command_with_update_callback(
+        sync_config,
+        remote_head.as_ref().map(|head| head.hash.as_str()),
+        |txt| {
+            send_ui_display_update(&ui_proxy, &push_title, &txt);
+        },
+    )?;
+
+    send_ui_display_update(
+        &ui_proxy,
+        String::from("Sync Success!"),
+        "Uploaded to remote!",
+    );
+
+    Ok(())
+}
+
 pub fn do_sync(
     sync_config: &RuntimeSyncConfig,
     ui_proxy: &EventLoopProxy<UIEvent>,
     sync_rx: &Receiver<SyncThreadCommand>,
 ) -> Result<bool, String> {
     send_ui_change_state(ui_proxy, WebViewState::Loading);
-    let main_sync = format!("Syncing {}", sync_config.remote_sync_key);
-    send_ui_display_update(&ui_proxy, &main_sync, "Checking remote...");
+    let main_sync_title = format!("Syncing {}", sync_config.remote_sync_key);
+    send_ui_display_update(&ui_proxy, &main_sync_title, "Checking remote...");
 
     let (check_sync_result, remote_head) = check_sync_command(&sync_config, false)?;
 
@@ -73,7 +104,7 @@ pub fn do_sync(
         CheckSyncResult::FastForwardLocal => {
             send_ui_display_update(
                 &ui_proxy,
-                &main_sync,
+                &main_sync_title,
                 "Newer version on remote found! Downloading from remote...",
             );
 
@@ -96,46 +127,42 @@ pub fn do_sync(
         }
         // === Pushing to remote cleanup ===
         CheckSyncResult::FastForwardRemote => {
-            send_ui_display_update(
-                &ui_proxy,
-                &main_sync,
-                "Local changes found - saving to remote...",
-            );
-
-            let push_title = format!("Uploading {} save files", sync_config.remote_sync_key);
-            push_command_with_update_callback(
-                sync_config,
-                remote_head.as_ref().map(|head| head.hash.as_str()),
-                |txt| {
-                    send_ui_display_update(&ui_proxy, &push_title, &txt);
-                },
-            )?;
-
-            send_ui_display_update(
-                &ui_proxy,
-                String::from("Sync Success!"),
-                "Uploaded to remote!",
-            );
-
+            push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
             return Ok(true);
         }
         CheckSyncResult::RemoteEmpty => {
+            send_ui_change_state(&ui_proxy, WebViewState::RemoteEmpty);
             send_ui_display_update(
                 &ui_proxy,
-                &main_sync,
+                String::from("Empty Remote Confirmation"),
                 format!(
-                    "Remote for key {} empty! Do you wish to push to initialize remote!",
+                    "Remote for key {} empty! Do you wish to push to initialize remote?",
                     &sync_config.remote_sync_key
                 ),
             );
 
-            // TODO: take action
-
+            loop {
+                match sync_rx.recv() {
+                    Ok(SyncThreadCommand::ResolveConflict {
+                        choice: ResolveConflictChoice::Push,
+                    }) => {
+                        break; // do same as push above
+                    }
+                    Ok(SyncThreadCommand::ResolveError {
+                        choice: ResolveErrorChoice::Close,
+                    }) => {
+                        return Ok(false); // user chose to stop
+                    }
+                    Err(e) => panic!("{e}"),
+                    _ => continue,
+                }
+            }
+            push_to_remote(sync_config, ui_proxy, &remote_head, &main_sync_title)?;
             return Ok(true);
         }
         CheckSyncResult::Conflict => {
             send_ui_change_state(&ui_proxy, WebViewState::Conflict);
-            send_ui_display_update(&ui_proxy, &main_sync, format!("Conflict found!"));
+            send_ui_display_update(&ui_proxy, &main_sync_title, format!("Conflict found!"));
 
             let selected_choice: ResolveConflictChoice;
             loop {

@@ -71,10 +71,11 @@ impl FromStr for WebViewRequestType {
 
 #[derive(Debug, Clone, Serialize)]
 pub enum WebViewState {
-    Loading,  // Default loading state
-    Conflict, // A conflict has ocurred - user needs to make choice
-    Error,    // An error has ocurred - user needs to make choice - or retry.
-    Success,  // Small green check after success
+    Loading,     // Default loading state
+    Conflict,    // A conflict has ocurred - user needs to make choice
+    Error,       // An error has ocurred - user needs to make choice - or retry.
+    Success,     // Small green check after success
+    RemoteEmpty, // Remote repository is empty - confirm push
 }
 
 // Events generated to be handled for the main loop

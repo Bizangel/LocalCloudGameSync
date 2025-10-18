@@ -6,6 +6,7 @@ import LoadingDisplay from './LoadingDisplay';
 import ErrorDisplay from './ErrorDisplay';
 import SuccessDisplay from './SuccessDisplay';
 import ConflictDisplay from './ConflictDisplay';
+import RemoteEmptyDisplay from './RemoteEmptyDisplay';
 
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
@@ -31,6 +32,10 @@ function App() {
     IPC.sendErrorResolve("continue-offline");
   }, [])
 
+  const confirmRemotePush = useCallback(() => {
+    IPC.sendResolveConflict("push");
+  }, [])
+
   switch (webViewState) {
     case "Loading":
       return <LoadingDisplay {...{display}}/>
@@ -50,6 +55,15 @@ function App() {
       />;
     case "Success":
       return <SuccessDisplay {...{display}} />;
+    case "RemoteEmpty":
+      return (
+        <RemoteEmptyDisplay
+          title={display.title}
+          subtext={display.subtext}
+          onConfirmPush={confirmRemotePush}
+          onCancel={closeUnsuccess}
+        />
+      )
   }
 }
 
