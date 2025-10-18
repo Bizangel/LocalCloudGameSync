@@ -13,9 +13,6 @@
 - - This means If a client accidentally pushed a `.log` file - this will be included in your folder in the next pull.
 - - This shouldn't affect sync logic as the `.log` will still be ignored when calculating the hash - but if this happen for more important files like `.cfg` files it might override local config accidentally.
 
-
-
-
 # Setup for SSH Save user:
 
 

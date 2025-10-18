@@ -30,7 +30,7 @@ fn digest_file(path: &Path) -> io::Result<String> {
 }
 
 /// Recursively walk a folder, calling `callback` for each file (not for dirs).
-fn walk_folder_rec_internal<F, G>(
+fn walk_folder_rec<F, G>(
     root: &Path,
     path: &Path,
     ignore_globset: &GlobSet,
@@ -61,14 +61,14 @@ where
 
         if path.is_dir() {
             // recurse into subdir
-            walk_folder_rec_internal(&root, &path, ignore_globset, callback, ignore_callback)?;
+            walk_folder_rec(&root, &path, ignore_globset, callback, ignore_callback)?;
         } else if path.is_file() {
             let rel = path
                 .strip_prefix(root)
                 .map_err(|e| format!("Error processing file {}\n{}", path.display(), e))?;
 
             // Skip ignored paths
-            if ignore_globset.is_match(&path) {
+            if ignore_globset.is_match(&rel) {
                 ignore_callback(&path, &rel)?;
                 continue;
             }
@@ -80,24 +80,11 @@ where
     Ok(())
 }
 
-fn walk_folder_rec<F>(
-    root: &Path,
-    path: &Path,
-    ignore_globset: &GlobSet,
-    callback: &mut F,
-) -> Result<(), String>
-where
-    F: FnMut(&Path, &Path) -> Result<(), String>,
-{
-    let mut ignored_noop = |_path: &Path, _rel: &Path| -> Result<(), String> { Ok(()) };
-    walk_folder_rec_internal(root, path, ignore_globset, callback, &mut ignored_noop)
-}
-
 fn walk_folder<F>(path: &Path, ignore_globset: &GlobSet, callback: &mut F) -> Result<(), String>
 where
     F: FnMut(&Path, &Path) -> Result<(), String>,
 {
-    return walk_folder_rec(path, path, ignore_globset, callback);
+    return walk_folder_rec(path, path, ignore_globset, callback, &mut |_, _| Ok(()));
 }
 
 // TODO: Make multi-threaded for faster checksumming - usually fine for save folders
@@ -216,7 +203,7 @@ pub fn collect_matching_files(
         Ok(())
     };
 
-    walk_folder_rec_internal(
+    walk_folder_rec(
         path,
         path,
         ignore_globset,

@@ -1,4 +1,4 @@
-use globset::{Glob, GlobSetBuilder};
+use globset::{GlobBuilder, GlobSetBuilder};
 
 use super::*;
 use crate::utils::generate_display_name_from_key;
@@ -95,7 +95,10 @@ impl SyncEntry {
         // 3. Validate globs
         let mut builder = GlobSetBuilder::new();
         for pat in &self.save_ignore_glob {
-            let pattern = Glob::new(&pat).map_err(|e| format!("Invalid glob pattern: {}", e))?;
+            let pattern = GlobBuilder::new(&pat)
+                .literal_separator(true)
+                .build()
+                .map_err(|e| format!("Invalid glob pattern: {}", e))?;
             builder.add(pattern);
         }
         let ignore_globset = builder
