@@ -67,7 +67,7 @@ export function useMultiInputNavigation(
         if (key == "Enter") {
             onConfirmation();
         }
-    }, [onConfirmation])
+    }, [onCancel])
 
     // Allow cancelling with both keyboard ESC and gamepad B
      useControllerEvent(ev => {
@@ -76,7 +76,7 @@ export function useMultiInputNavigation(
                 onCancel();
             }
         }
-    }, [onConfirmation])
+    }, [onCancel])
 
     useKeyboardPress((key) => {
         if (key == "Escape") {
