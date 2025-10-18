@@ -136,7 +136,7 @@ const ConflictDisplay = ({
               </div>
               <div className="conflict-info">
                 <h2>Remote Save</h2>
-                <p>Uploaded on {remote_uploaded_time} by {remote_author}</p>
+                <p>On {remote_uploaded_time} - {remote_author}</p>
               </div>
             </div>
           </div>
