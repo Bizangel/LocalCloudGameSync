@@ -78,6 +78,13 @@ Then copy the public keys to authorized keys
 sudo micro /home/zangelgamesyncer/.ssh/authorized_keys
 ```
 
+Ensure to use right permissions if you just created it.
+
+```bash
+sudo chmod 700 /home/zangelgamesyncer/.ssh/
+sudo chmod 600 /home/zangelgamesyncer/.ssh/authorized_keys
+```
+
 Create the required folder you want manually - in my case I use:
 
 Also creating a restic password.
