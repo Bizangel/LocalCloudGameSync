@@ -37,6 +37,9 @@ where
         .build(&event_loop)
         .expect("Failed to create window");
 
+    window.set_focus();
+    window.set_always_on_top(true);
+
     #[cfg(not(any(
         target_os = "windows",
         target_os = "macos",
