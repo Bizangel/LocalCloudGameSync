@@ -40,6 +40,18 @@ where
     window.set_focus();
     window.set_always_on_top(true);
 
+    if let (Some(monitor), window_size) = (window.current_monitor(), window.outer_size()) {
+        let monitor_pos = monitor.position();
+        let monitor_size = monitor.size();
+
+        let centered_x =
+            monitor_pos.x + ((monitor_size.width as i32 - window_size.width as i32) / 2);
+        let centered_y =
+            monitor_pos.y + ((monitor_size.height as i32 - window_size.height as i32) / 2);
+
+        window.set_outer_position(tao::dpi::PhysicalPosition::new(centered_x, centered_y));
+    }
+
     #[cfg(not(any(
         target_os = "windows",
         target_os = "macos",
