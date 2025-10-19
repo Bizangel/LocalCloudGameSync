@@ -27,7 +27,7 @@ const ConflictDisplay = ({
       {
         key: 'remote' as const,
         perform: onChooseRemote,
-        confirmTitle: 'Use Remote Save?',
+        confirmTitle: 'Keep Remote Save?',
         confirmDescription: 'This will overwrite the local save data with the remote version stored on the server.',
         confirmLabel: 'Keep Remote Save',
         confirmClassName: 'neutral',
@@ -35,7 +35,7 @@ const ConflictDisplay = ({
       {
         key: 'local' as const,
         perform: onChooseLocal,
-        confirmTitle: 'Use Local Save?',
+        confirmTitle: 'Keep Local Save?',
         confirmDescription: 'This will overwrite the server copy with your local save data.',
         confirmLabel: 'Keep Local Save',
         confirmClassName: 'neutral',
