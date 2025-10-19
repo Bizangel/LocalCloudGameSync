@@ -35,6 +35,7 @@ export type WebViewUpdateCommand = {
   title_text: string,
   sub_text: string,
   conflict_info?: ConflictDisplayInfo,
+  is_after_game: boolean,
 }
 
 export type WebViewState = "Loading" | "Conflict" | "Error" | "Success" | "RemoteEmpty"

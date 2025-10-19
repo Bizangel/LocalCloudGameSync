@@ -14,6 +14,7 @@ impl SyncThreadContext {
                 title_text: titletext.into(),
                 sub_text: subtext.into(),
                 conflict_info: None,
+                is_after_game: self.after_game,
             },
         };
         let _ = self.ui_proxy.send_event(cmd);
@@ -37,6 +38,7 @@ impl SyncThreadContext {
                 title_text: title.to_string(),
                 sub_text: "".to_string(),
                 conflict_info: Some(conflict_info),
+                is_after_game: self.after_game,
             },
         };
         let _ = self.ui_proxy.send_event(cmd);

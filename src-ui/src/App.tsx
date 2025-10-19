@@ -12,7 +12,7 @@ type DisplayType = WebViewUpdateCommand
 
 function App() {
   const [webViewState, setWebViewState] = useState<WebViewState>("Loading");
-  const [display, setDisplay] = useState<DisplayType>({ title_text: "Loading", sub_text: "", conflict_info: undefined});
+  const [display, setDisplay] = useState<DisplayType>({ title_text: "Loading", sub_text: "", conflict_info: undefined, is_after_game: false });
 
   useWebViewEvent("WebViewStateChange", useCallback((ev) => {
     setWebViewState(ev.state);

@@ -57,6 +57,7 @@ pub enum WebViewCommand {
         title_text: String,
         sub_text: String,
         conflict_info: Option<ConflictDisplayInfo>,
+        is_after_game: bool,
     },
 
     WebViewStateChange {

@@ -4,25 +4,33 @@ import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
 import { ConfirmModal } from './ConfirmModal';
 
 type ErrorDisplayProps = {
-  error: { title_text: string; sub_text: string }
+  error: { title_text: string; sub_text: string, is_after_game: boolean}
   onContinueOffline?: () => void
   onClose?: () => void
   onRetry?: () => void
 }
 
 const ErrorDisplay = ({
-  error: { title_text, sub_text },
+  error: { title_text, sub_text, is_after_game },
   onContinueOffline,
   onClose,
   onRetry,
 }: ErrorDisplayProps) => {
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const baseButtons = useMemo(() => [
-      { label: 'Continue Offline', className: 'danger', action: () => setShowConfirm(true) },
-      { label: 'Close', className: 'secondary', action: onClose },
-      { label: 'Retry', className: 'neutral', action: onRetry },
-  ], [onClose, onRetry, setShowConfirm])
+  const baseButtons = useMemo(() =>
+    is_after_game ?
+      [
+        { label: 'Exit without Saving', className: 'danger', action: () => setShowConfirm(true) },
+        { label: 'Retry', className: 'neutral', action: onRetry },
+      ]
+      :
+      [
+        { label: 'Continue Offline', className: 'danger', action: () => setShowConfirm(true) },
+        { label: 'Close', className: 'secondary', action: onClose },
+        { label: 'Retry', className: 'neutral', action: onRetry },
+      ]
+    , [onClose, onRetry, setShowConfirm, is_after_game])
 
   const onConfirm = useCallback((idx: number) => {
     const entry = baseButtons[idx]
@@ -67,9 +75,9 @@ const ErrorDisplay = ({
         <ConfirmModal
           onCancel={onModalCancel}
           onConfirm={onModalConfirm}
-          title="Continue Offline?"
-          description="Continuing offline can potentially cause a save conflict later on. Do you really want to proceed?"
-          confirmLabel="Yes, Continue"
+          title={is_after_game ? "Exit Sync" : "Continue Offline?"}
+          description={is_after_game ? "Your save will NOT be uploaded and this may yield to save conflicts later on. Are you sure want to exit?" : "Continuing offline can potentially cause a save conflict later on. Do you really want to proceed?"}
+          confirmLabel={is_after_game ? "Exit without Upload" : "Yes, Continue" }
           cancelLabel="Cancel"
           confirmClassName="danger"
           cancelClassName="secondary"

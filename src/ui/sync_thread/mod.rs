@@ -32,6 +32,7 @@ where
 
 fn do_sync(sync_key: &str, context: &mut SyncThreadContext) -> Result<SyncOutcome, String> {
     // Load config
+    context.show_loading_step("Syncing", "Checking remote...");
     let sync_config = load_config(sync_key, context.config_file_override.as_deref())?;
     context.game_display_name = Some(sync_config.game_display_name.clone());
     let context: &SyncThreadContext = context; // drop mutability
