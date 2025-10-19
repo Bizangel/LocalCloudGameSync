@@ -97,7 +97,7 @@ Download the script from `scripts/steam_wrapper/lcgsync_steam_wrapper.sh` and ad
 
 Then you can just wrap your games in steam launch configs like this:
 
-```
+```bash
 /scripts/bin/lcgsync_steam_wrapper.sh testsynckey %command%
 ```
 
@@ -126,6 +126,20 @@ wscript "C:\UtilityPrograms\bat_wrapper_shell_hidden.vbs" "C:\UtilityPrograms\st
 
 The need for 2 scripts instead of one is to hide the ugly batch window using VBscript hacky stuff - which allows to do this.
 This can also be done with modern powershell but it seems to not fully hide the console window for some reason?
+
+## How to Wrap Steam Shortcuts in Windows
+
+The above will only work for steam games - not for "non-steam" game shortcuts. These work a little bit different.
+
+You will need to instead set the shortcut normally.
+
+Then replace the actual executable with our initial wrapper script - and instead pass it as a parameter - as the example below:
+
+```
+Target Executable: "C:\UtilityPrograms\bat_wrapper_shell_hidden.vbs"
+Start In: <Should be game original start-in folder>
+Launch Options: "C:\UtilityPrograms\steam_sync_wrapper.bat" star-renegades "C:\Games\Star Renegades\Star Renegades.exe"
+```
 
 # Limitations
 
