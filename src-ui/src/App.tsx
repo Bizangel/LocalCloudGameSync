@@ -57,6 +57,7 @@ function App() {
         return null;
       return <ConflictDisplay
         title={display.title_text}
+        is_after_game={display.is_after_game}
         conflict_info={display.conflict_info}
         onChooseLocal={sendPush} // keep local -> so push into remote
         onChooseRemote={sendPull} // keep remote -> so pull from remote

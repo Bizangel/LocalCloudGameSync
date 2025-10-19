@@ -2,19 +2,22 @@ import { useCallback, useMemo, useState } from 'react'
 import './ConflictDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation'
 import { ConfirmModal } from './ConfirmModal'
-import type { ConflictDisplayInfo } from './ipc/common'
+import { IPC, type ConflictDisplayInfo } from './ipc/common'
+import { useWebViewEvent } from './hooks/useGlobalRustEventListener'
 
 type SelectionKey = 'remote' | 'local'
 
 type ConflictDisplayProps = {
   title: string,
   conflict_info: ConflictDisplayInfo,
+  is_after_game: boolean,
   onChooseLocal: () => void
   onChooseRemote: () => void
 }
 
 const ConflictDisplay = ({
   title,
+  is_after_game,
   conflict_info: { local_modified_time, remote_author, remote_uploaded_time },
   onChooseLocal,
   onChooseRemote,
@@ -80,6 +83,22 @@ const ConflictDisplay = ({
   const handleCancelSelection = useCallback(() => {
     setPendingSelection(null)
   }, [])
+
+  const [closeConfirmModal, setCloseConfirmModal] = useState(false);
+
+  useWebViewEvent("WebViewNotifyClose", useCallback(() => {
+    // Display confirm modal if attempting to leave after game has closed
+    if (is_after_game)
+      setCloseConfirmModal(true)
+  }, [is_after_game, setCloseConfirmModal]));
+
+  const onCloseModalConfirm = useCallback(() => {
+    IPC.sendUserChoice("close") // forcefully closing offline
+  }, [setCloseConfirmModal])
+
+  const onCloseModalCancel = useCallback(() => {
+    setCloseConfirmModal(false);
+  }, [setCloseConfirmModal])
 
   return (
     <div className="container">
@@ -186,6 +205,19 @@ const ConflictDisplay = ({
           description={pendingOption.confirmDescription}
           confirmLabel={pendingOption.confirmLabel}
           confirmClassName={pendingOption.confirmClassName}
+          cancelLabel="Cancel"
+          cancelClassName="secondary"
+        />
+      )}
+
+      {closeConfirmModal && (
+        <ConfirmModal
+          onConfirm={onCloseModalConfirm}
+          onCancel={onCloseModalCancel}
+          title={"Are you sure you want to exit?"}
+          description={"Your remote won't be updated and sync will fail next time with a conflict. "}
+          confirmLabel={"Exit Without Uploading"}
+          confirmClassName="danger"
           cancelLabel="Cancel"
           cancelClassName="secondary"
         />
