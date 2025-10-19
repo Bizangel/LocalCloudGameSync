@@ -94,7 +94,7 @@ const ConflictDisplay = ({
 
   const onCloseModalConfirm = useCallback(() => {
     IPC.sendUserChoice("close") // forcefully closing offline
-  }, [setCloseConfirmModal])
+  }, [])
 
   const onCloseModalCancel = useCallback(() => {
     setCloseConfirmModal(false);
