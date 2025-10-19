@@ -3,15 +3,115 @@
 
 - TODO
 
+## Building
 
-## How to use in Windows - Wrapping Steam Games for Sync Cloud
+You will need to build the UI first - as that generates a minified HTML directly embedded into the executable.
 
-1. Download scripts in `scripts/windows_steam` and get them to a folder you like.
-2. Copy their absolute paths of both scripts.
-3. Done! To add a new game to be synced before and after launch - add to the steam custom launch flags the following:
+```
+cd src-ui/
+npm run build
+```
+
+Then
+
+```
+cd..
+cargo build --release
+```
+
+## How to use in Linux
+
+1. Install as command line program. I like `lcgsync` as name.
+
+```
+sudo cp ./target/release/local_cloud_game_sync /usr/bin/lcgsync
+sudo chmod +x /usr/bin/lcgsync
+```
+
+2. Setup config
+
+```
+lcgsync init-config
+lcgsync open-config
+```
+
+Example config
+
+```json
+{
+  "clientName": "Bizangel Laptop",
+  "sshHost": "zangelgamesyncer",
+  "sshPort": 22,
+  "remoteSyncRoot": "/media/game_saves",
+  "syncEntries": [
+    {
+      "remoteSyncKey": "testsynckey",
+      "saveFolderPath": "{{HOME}}/Downloads/testsave",
+      "saveIgnoreGlob": ["**/*.log"]
+    }
+  ]
+}
+```
+
+3. Test your config and ensure the tracked files are correct:
+
+```
+❯ lcgsync files testsynckey
+Sync key: testsynckey
+Save Folder:  /home/arcanzu/Downloads/testsave
+Tracked Files:
+        example_save.txt
+Ignored files:
+<no entries>
+```
+
+4. Test opening the user interface directly and which will automatically perform your first sync (or show you errors etc).
+
+```
+lcgsync ui testsynckey
+```
+
+Done! You can use this to sync your game saves whenever you want with a nice user interface.
+
+The end-goal is for this to be ran automatically anytime you open your games - so see below in how to run it automatically.
+
+
+# How to Wrap Steam
+
+## How to wrap Steam in Linux - Wrapping Steam Games for Local Cloud Game Sync
+
+1. Update your game launch command as follows.
+
+```
+lcgsync ui testsynckey && %command%; lcgsync ui testsynckey --after-game
+```
+
+**Note: Update the key accordingly - of course you want each game to have a different key so you will need to update your config accordingly.**
+
+That's it - done! The script will launch before and after launching your game.
+
+### Optional - Use wrapper script
+
+To make it slightly easier and more clean you can create a wrapper script.
+Download the script from `scripts/steam_wrapper/lcgsync_steam_wrapper.sh` and add it to your path.
+
+Then you can just wrap your games in steam launch configs like this:
+
+```
+/scripts/bin/lcgsync_steam_wrapper.sh testsynckey %command%
+```
+
+**Note: Ensure to use absolute path for wrapper script - or don't - if you somehow got it working without it**
+
+## How to wrap Steam in Windows - Wrapping Steam Games for Local Cloud Game Sync
+
+1. Download the scripts in `scripts/steam_wrapper/bat_wrapper_shell_hidden.vbs` and `scripts/steam_wrapper/steam_sync_wrapper.bat`  and get them to a folder you like.
+2. Modify `steam_sync_wrapper.bat` to make it point to the right executable location.ñ
+3. Copy their absolute paths of both scripts.
+4. Done! To add a new game to be synced before and after launch - add to the steam custom launch flags the following:
 
 ```bash
-wscript <> "C:\UtilityPrograms\steam_sync_wrapper.bat" testsynckey %command%
+wscript "C:\UtilityPrograms\steam_sync_wrapper.bat" testsynckey %command%
 ```
 
 Example:

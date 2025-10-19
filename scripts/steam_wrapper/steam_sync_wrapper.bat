@@ -23,5 +23,5 @@ if not defined GAME_EXE exit /b 1
 start /wait "" "%GAME_EXE%" %GAME_ARGS%
 set EXITCODE=%ERRORLEVEL%
 
-"%SYNC_EXE%" ui %SYNC_KEY%
+"%SYNC_EXE%" ui %SYNC_KEY% --after-game
 exit /b %EXITCODE%
