@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import './ErrorDisplay.css'
 import { useMultiInputNavigation } from './hooks/useMultiInputNavigation';
 import { ConfirmModal } from './ConfirmModal';
+import { useWebViewEvent } from './hooks/useGlobalRustEventListener';
 
 type ErrorDisplayProps = {
   error: { title_text: string; sub_text: string, is_after_game: boolean}
@@ -41,6 +42,13 @@ const ErrorDisplay = ({
   const onModalConfirm = useCallback(() => { setShowConfirm(false);  onContinueOffline?.() }, [setShowConfirm, onContinueOffline])
   const onModalCancel = useCallback(() => {setShowConfirm(false)}, [setShowConfirm])
   const buttonIndex = useMultiInputNavigation(baseButtons.length, onConfirm, undefined, !showConfirm);
+
+  useWebViewEvent("WebViewNotifyClose", useCallback(() => {
+    // Display confirm modal if attempting to leave after game has closed
+    if (is_after_game)
+      setShowConfirm(true)
+  }, [is_after_game, setShowConfirm]));
+
 
   return (
     <div className="container">

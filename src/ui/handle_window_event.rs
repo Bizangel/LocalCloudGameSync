@@ -6,7 +6,9 @@ use wry::{
 
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
-use crate::ui::common::{SyncThreadCommand, UserChoice, WebViewState};
+use crate::ui::common::{
+    SyncThreadCommand, UserChoice, WebViewCommand, WebViewState, send_event_to_webview,
+};
 
 pub fn handle_window_event(
     event: &WindowEvent,
@@ -16,6 +18,7 @@ pub fn handle_window_event(
     sync_tx: &Sender<SyncThreadCommand>,
     sync_thread_handle: &RefCell<Option<JoinHandle<()>>>,
     current_state: &RefCell<WebViewState>,
+    is_after_game: bool,
 ) {
     match event {
         WindowEvent::Resized(new_size) => {
@@ -41,12 +44,21 @@ pub fn handle_window_event(
             }
         }
         WindowEvent::CloseRequested => {
+            // notify webview
+            send_event_to_webview(
+                &webview.borrow(),
+                &WebViewCommand::WebViewNotifyClose { empty_payload: 0 },
+            );
             // If loading - prevent closing
             if let WebViewState::Loading = *current_state.borrow() {
                 return;
             };
 
-            // TODO: Handle conflict state properly - as probably has diff logic
+            // If after game - prevent closing. Let sync thread handle the closing with manual choice logic.
+            if is_after_game {
+                return;
+            }
+
             let _ = sync_tx.send(SyncThreadCommand::UserChoice {
                 choice: UserChoice::Close,
             });

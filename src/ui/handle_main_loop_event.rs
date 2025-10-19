@@ -18,6 +18,7 @@ pub fn handle_main_loop_event(
     sync_tx: &Sender<SyncThreadCommand>,
     sync_thread_handle: &RefCell<Option<JoinHandle<()>>>,
     current_state: &RefCell<WebViewState>,
+    is_after_game: bool,
 ) {
     match event {
         Event::WindowEvent { event, .. } => handle_window_event(
@@ -28,6 +29,7 @@ pub fn handle_main_loop_event(
             sync_tx,
             sync_thread_handle,
             &current_state,
+            is_after_game,
         ),
         Event::UserEvent(event) => match event {
             UIEvent::WebViewEvent { event } => {

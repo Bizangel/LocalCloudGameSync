@@ -44,7 +44,9 @@ export type WebViewStateChangeEvent = {
   state: WebViewState,
 }
 
-export type WebViewCommand = { WebViewUpdate: WebViewUpdateCommand } | { WebViewStateChange : WebViewStateChangeEvent };
+export type WebViewNotifyCloseEvent = { empty_payload: number };
+
+export type WebViewCommand = { WebViewUpdate: WebViewUpdateCommand } | { WebViewStateChange: WebViewStateChangeEvent } | { WebViewNotifyClose: WebViewNotifyCloseEvent };
 
 export type WebViewCommandMap = {
   [E in WebViewCommand as keyof E]: E[keyof E];

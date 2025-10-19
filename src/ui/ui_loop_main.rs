@@ -55,6 +55,7 @@ pub fn ui_loop_main(
             &sync_tx,
             &sync_thread_handle,
             &webview_state,
+            after_game,
         );
     });
 }

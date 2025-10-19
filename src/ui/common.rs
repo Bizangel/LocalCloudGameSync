@@ -63,6 +63,11 @@ pub enum WebViewCommand {
     WebViewStateChange {
         state: WebViewState,
     },
+
+    // Notifies the webview when the user is attempting to close the window.
+    WebViewNotifyClose {
+        empty_payload: u32, // needs something else parsing logic breaks
+    },
 }
 
 pub fn send_event_to_webview(webview: &WebView, ev: &WebViewCommand) {
