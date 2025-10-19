@@ -71,16 +71,21 @@ where
 
     let devtool_enabled;
     let app_url;
+    let disable_right_click_menu_script;
     #[cfg(debug_assertions)]
     {
         use crate::ui::common::VITE_DEV_LOCALHOST_URL;
         devtool_enabled = true;
         app_url = VITE_DEV_LOCALHOST_URL;
+        disable_right_click_menu_script = "";
     }
     #[cfg(not(debug_assertions))]
     {
         devtool_enabled = false;
-        app_url = "app://localhost"
+        app_url = "app://localhost";
+        disable_right_click_menu_script = r#"""
+            document.addEventListener('contextmenu', event => event.preventDefault());
+        """#;
     }
 
     // Get initial size with proper DPI scaling
@@ -108,6 +113,7 @@ where
                     .unwrap()
             }
         })
+        .with_initialization_script(disable_right_click_menu_script)
         .with_url(app_url) // Load from custom protocol
         .with_ipc_handler(webview_ipc_handler);
 
