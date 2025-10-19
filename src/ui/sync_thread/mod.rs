@@ -50,7 +50,11 @@ fn do_sync(
 
     match check_sync_result {
         CheckSyncResult::UpToDate => {
-            show_success_message(ui_proxy, "Local is up to date!");
+            show_success_message(
+                ui_proxy,
+                &sync_config.game_display_name,
+                "Local is up to date!",
+            );
             Ok(SyncOutcome::Completed)
         }
         CheckSyncResult::FastForwardLocal => {
@@ -100,17 +104,19 @@ pub fn sync_thread_main(
                 let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
                 break;
             }
-            Err(e) => match handle_sync_error(&ui_proxy, &sync_rx, &e) {
-                ErrorResolution::Retry => continue,
-                ErrorResolution::Close => {
-                    let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
-                    break;
+            Err(e) => {
+                match handle_sync_error(&ui_proxy, &sync_rx, &sync_config.game_display_name, &e) {
+                    ErrorResolution::Retry => continue,
+                    ErrorResolution::Close => {
+                        let _ = ui_proxy.send_event(UIEvent::SyncFailedEvent);
+                        break;
+                    }
+                    ErrorResolution::ContinueOffline => {
+                        let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
+                        break;
+                    }
                 }
-                ErrorResolution::ContinueOffline => {
-                    let _ = ui_proxy.send_event(UIEvent::SyncSuccessCompletedEvent);
-                    break;
-                }
-            },
+            }
         }
     }
 }

@@ -53,6 +53,10 @@ pub(super) fn show_loading_step(ui_proxy: &EventLoopProxy<UIEvent>, title: &str,
     send_ui_display_update(ui_proxy, title, message);
 }
 
-pub(super) fn show_success_message(ui_proxy: &EventLoopProxy<UIEvent>, message: &str) {
-    send_ui_display_update(ui_proxy, "Sync Success!", message);
+pub(super) fn show_success_message(
+    ui_proxy: &EventLoopProxy<UIEvent>,
+    display_name: &str,
+    message: &str,
+) {
+    send_ui_display_update(ui_proxy, format!("{} Sync Success!", display_name), message);
 }

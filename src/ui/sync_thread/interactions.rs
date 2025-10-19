@@ -52,7 +52,7 @@ pub(super) fn handle_remote_empty(
     send_ui_change_state(ui_proxy, WebViewState::RemoteEmpty);
     send_ui_display_update(
         ui_proxy,
-        "Empty Remote Confirmation",
+        format!("{} Upload Confirmation", sync_config.game_display_name),
         format!(
             "Remote for key {} is empty! Do you wish to push to initialize remote?",
             sync_config.remote_sync_key
@@ -113,10 +113,15 @@ pub(super) fn handle_conflict(
 pub(super) fn handle_sync_error(
     ui_proxy: &EventLoopProxy<UIEvent>,
     sync_rx: &Receiver<SyncThreadCommand>,
+    game_display_name: &str,
     error_message: &str,
 ) -> ErrorResolution {
     send_ui_change_state(ui_proxy, WebViewState::Error);
-    send_ui_display_update(ui_proxy, "Sync Error", error_message);
+    send_ui_display_update(
+        ui_proxy,
+        format!("{} Sync Error", game_display_name),
+        error_message,
+    );
 
     let choice = wait_for_user_choice(sync_rx, |choice| match choice {
         UserChoice::Close | UserChoice::ContinueOffline | UserChoice::Retry => Some(choice),

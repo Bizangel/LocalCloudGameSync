@@ -29,7 +29,11 @@ pub(super) fn push_to_remote(
         },
     )?;
 
-    show_success_message(ui_proxy, "Uploaded to remote!");
+    show_success_message(
+        ui_proxy,
+        &sync_config.game_display_name,
+        "Uploaded to remote!",
+    );
 
     Ok(())
 }
@@ -55,7 +59,11 @@ pub(super) fn pull_from_remote(
         },
     )?;
 
-    show_success_message(ui_proxy, "Downloaded from remote!");
+    show_success_message(
+        ui_proxy,
+        &sync_config.game_display_name,
+        "Downloaded from remote!",
+    );
 
     Ok(())
 }
