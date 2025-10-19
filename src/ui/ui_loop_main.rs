@@ -1,23 +1,25 @@
 use std::{
     cell::RefCell,
+    path::PathBuf,
     sync::mpsc::{self, Receiver, Sender},
 };
 
 use tao::event_loop::EventLoopBuilder;
 use wry::http::Request;
 
-use crate::{
-    config::RuntimeSyncConfig,
-    ui::{
-        common::{UIEvent, WebViewState},
-        handle_main_loop_event::handle_main_loop_event,
-        sync_thread::{SyncThreadCommand, sync_thread_main},
-        webview_ipc_handler_proxy::proxy_webview_event_to_event_loop,
-        window_builder::build_window_with_webview,
-    },
+use crate::ui::{
+    common::{SyncThreadCommand, SyncThreadContext, UIEvent, WebViewState},
+    handle_main_loop_event::handle_main_loop_event,
+    sync_thread::sync_thread_main,
+    webview_ipc_handler_proxy::proxy_webview_event_to_event_loop,
+    window_builder::build_window_with_webview,
 };
 
-pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
+pub fn ui_loop_main(
+    sync_key: String,
+    after_game: bool,
+    config_file_override: Option<PathBuf>,
+) -> Result<(), String> {
     let event_loop = EventLoopBuilder::<UIEvent>::with_user_event().build();
     let event_proxy = event_loop.create_proxy();
     let sync_thread_event_proxy = event_proxy.clone();
@@ -32,7 +34,14 @@ pub fn ui_loop_main(sync_config: RuntimeSyncConfig) -> Result<(), String> {
 
     // Spawn actual sync thread
     let sync_thread_handle = std::thread::spawn(move || {
-        sync_thread_main(sync_config, sync_thread_event_proxy, sync_rx);
+        let context = SyncThreadContext {
+            ui_proxy: sync_thread_event_proxy,
+            sync_rx,
+            after_game,
+            config_file_override,
+            game_display_name: None,
+        };
+        sync_thread_main(&sync_key, context);
     });
     let sync_thread_handle = RefCell::new(Some(sync_thread_handle));
     let webview_state = RefCell::new(WebViewState::Loading);

@@ -32,10 +32,6 @@ This can also be done with modern powershell but it seems to not fully hide the 
 - Remote Server is always expected to be a compliant linux machine with bash.
 - Remote path is limited to alphanumeric and -_/ characters.
 
-- UI is currently configured to come after errors config and parsing. So there's only command line output feedback instead of UI-feedback if the game config is misconfigured.
-- - This can lead to some frustrating behaviors - if trying to create an steam wrapper - and synckey is wrong it will just fail silently. (As cmd will be hidden)
-
-
 - Current remote SSH logic does not check remote saves. This means we trust that REMOTE_HEAD will always accurately represent the state of the remote save.
 - - If you wish to modify the save files directly on the remote - please update the REMOTE_HEAD hash accordingly (Not recommmended).
 - - If you wish to modify save files - simply modify them on a local client - then use the client to push to the remote (Recommended).

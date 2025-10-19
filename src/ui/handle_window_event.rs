@@ -6,10 +6,7 @@ use wry::{
 
 use tao::{event::WindowEvent, event_loop::ControlFlow, keyboard::Key, window::Window};
 
-use crate::ui::{
-    common::{UserChoice, WebViewState},
-    sync_thread::SyncThreadCommand,
-};
+use crate::ui::common::{SyncThreadCommand, UserChoice, WebViewState};
 
 pub fn handle_window_event(
     event: &WindowEvent,

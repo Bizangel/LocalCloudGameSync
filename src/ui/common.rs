@@ -3,6 +3,8 @@ pub const UI_INITIAL_SIZE_WIDTH_PX: f64 = 1000.0;
 pub const UI_INITIAL_SIZE_HEIGHT_PX: f64 = 720.0;
 pub const VITE_DEV_LOCALHOST_URL: &str = "http://localhost:5173";
 use serde::Serialize;
+use std::{path::PathBuf, sync::mpsc::Receiver};
+use tao::event_loop::EventLoopProxy;
 use wry::WebView;
 
 #[derive(Debug, Clone)]
@@ -69,4 +71,21 @@ pub fn send_event_to_webview(webview: &WebView, ev: &WebViewCommand) {
 
     let script = format!("window.postMessage({}, '*');", evpayload);
     let _ = webview.evaluate_script(&script);
+}
+
+/// Commands sent from main UI loop to the Sync Thread.
+#[derive(Debug, Clone)]
+pub enum SyncThreadCommand {
+    UIReady,
+    UserChoice { choice: UserChoice },
+}
+
+pub struct SyncThreadContext {
+    pub ui_proxy: EventLoopProxy<UIEvent>,
+    pub sync_rx: Receiver<SyncThreadCommand>,
+    pub after_game: bool,
+    pub config_file_override: Option<PathBuf>,
+    // TODO: This shouldn't be here but I don't wanna refactor further. This is just to display game name best-effort on error.
+    // Game name cannot be displayed if the error itself was loading the config.
+    pub game_display_name: Option<String>,
 }

@@ -1,7 +1,9 @@
 use crate::ui::{
-    common::{UIEvent, WebViewCommand, WebViewEvent, WebViewState, send_event_to_webview},
+    common::{
+        SyncThreadCommand, UIEvent, WebViewCommand, WebViewEvent, WebViewState,
+        send_event_to_webview,
+    },
     handle_window_event::handle_window_event,
-    sync_thread::SyncThreadCommand,
 };
 use std::{cell::RefCell, rc::Rc, sync::mpsc::Sender, thread::JoinHandle};
 use tao::{event::Event, event_loop::ControlFlow, window::Window};

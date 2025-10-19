@@ -1,15 +1,13 @@
 use crate::{
     common::Revision,
     config::RuntimeSyncConfig,
-    ui::common::{UIEvent, UserChoice, WebViewState},
+    ui::common::{SyncThreadContext, UserChoice, WebViewState},
 };
 use std::sync::mpsc::Receiver;
-use tao::event_loop::EventLoopProxy;
 
 use super::{
     SyncThreadCommand,
     operations::{pull_from_remote, push_to_remote},
-    ui_messages::{send_ui_change_state, send_ui_display_update, send_ui_display_update_conflict},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,14 +42,12 @@ where
 
 pub(super) fn handle_remote_empty(
     sync_config: &RuntimeSyncConfig,
-    ui_proxy: &EventLoopProxy<UIEvent>,
-    sync_rx: &Receiver<SyncThreadCommand>,
+    context: &SyncThreadContext,
     remote_head: &Option<Revision>,
     main_sync_title: &str,
 ) -> Result<SyncOutcome, String> {
-    send_ui_change_state(ui_proxy, WebViewState::RemoteEmpty);
-    send_ui_display_update(
-        ui_proxy,
+    context.send_ui_change_state(WebViewState::RemoteEmpty);
+    context.send_ui_display_update(
         format!("{} Upload Confirmation", sync_config.game_display_name),
         format!(
             "Remote for key {} is empty! Do you wish to push to initialize remote?",
@@ -59,14 +55,14 @@ pub(super) fn handle_remote_empty(
         ),
     );
 
-    let choice = wait_for_user_choice(sync_rx, |choice| match choice {
+    let choice = wait_for_user_choice(&context.sync_rx, |choice| match choice {
         UserChoice::Push | UserChoice::Close => Some(choice),
         _ => None,
     });
 
     match choice {
         UserChoice::Push => {
-            push_to_remote(sync_config, ui_proxy, remote_head, main_sync_title)?;
+            push_to_remote(sync_config, &context, remote_head, main_sync_title)?;
             Ok(SyncOutcome::Completed)
         }
         UserChoice::Close => Ok(SyncOutcome::Cancelled),
@@ -76,33 +72,31 @@ pub(super) fn handle_remote_empty(
 
 pub(super) fn handle_conflict(
     sync_config: &RuntimeSyncConfig,
-    ui_proxy: &EventLoopProxy<UIEvent>,
-    sync_rx: &Receiver<SyncThreadCommand>,
+    context: &SyncThreadContext,
     remote_head: &Option<Revision>,
     main_sync_title: &str,
     local: &Revision,
     remote: &Revision,
 ) -> Result<SyncOutcome, String> {
-    send_ui_change_state(ui_proxy, WebViewState::Conflict);
-    send_ui_display_update_conflict(
-        ui_proxy,
+    context.send_ui_change_state(WebViewState::Conflict);
+    context.send_ui_display_update_conflict(
         &format!("{} Conflict Found", sync_config.game_display_name),
         local,
         remote,
     );
 
-    let choice = wait_for_user_choice(sync_rx, |choice| match choice {
+    let choice = wait_for_user_choice(&context.sync_rx, |choice| match choice {
         UserChoice::Pull | UserChoice::Push | UserChoice::Close => Some(choice),
         _ => None,
     });
 
     match choice {
         UserChoice::Pull => {
-            pull_from_remote(sync_config, ui_proxy, remote_head, main_sync_title)?;
+            pull_from_remote(sync_config, &context, remote_head, main_sync_title)?;
             Ok(SyncOutcome::Completed)
         }
         UserChoice::Push => {
-            push_to_remote(sync_config, ui_proxy, remote_head, main_sync_title)?;
+            push_to_remote(sync_config, &context, remote_head, main_sync_title)?;
             Ok(SyncOutcome::Completed)
         }
         UserChoice::Close => Ok(SyncOutcome::Cancelled),
@@ -111,19 +105,19 @@ pub(super) fn handle_conflict(
 }
 
 pub(super) fn handle_sync_error(
-    ui_proxy: &EventLoopProxy<UIEvent>,
-    sync_rx: &Receiver<SyncThreadCommand>,
-    game_display_name: &str,
+    context: &SyncThreadContext,
     error_message: &str,
 ) -> ErrorResolution {
-    send_ui_change_state(ui_proxy, WebViewState::Error);
-    send_ui_display_update(
-        ui_proxy,
-        format!("{} Sync Error", game_display_name),
+    context.send_ui_change_state(WebViewState::Error);
+    context.send_ui_display_update(
+        format!(
+            "{} Sync Error",
+            &context.game_display_name.clone().unwrap_or_default()
+        ),
         error_message,
     );
 
-    let choice = wait_for_user_choice(sync_rx, |choice| match choice {
+    let choice = wait_for_user_choice(&context.sync_rx, |choice| match choice {
         UserChoice::Close | UserChoice::ContinueOffline | UserChoice::Retry => Some(choice),
         _ => None,
     });

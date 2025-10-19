@@ -25,9 +25,7 @@ struct LocalGameSyncCli {
 enum Commands {
     /// Perform the remote check to see what sync actions need to be performed.
     /// Determines whether local be fast-forwarded - or remote can be fast-forwarded - or whether there's a conflict that requires manual approval.
-    CheckSync {
-        sync_key: String,
-    },
+    CheckSync { sync_key: String },
 
     /// Perform uni-directional pull process for the given game key. Pulls the remote version overwriting the local folder.
     /// Pull can be a destructive action - hence it is recommended to ensure that your current version is already on the cloud.
@@ -51,9 +49,7 @@ enum Commands {
         if_head: Option<String>,
     },
     /// Shows the files tracked and ignored for a given game key. Useful for verifying game configs.
-    Files {
-        sync_key: String,
-    },
+    Files { sync_key: String },
     /// Opens the default config file
     OpenConfig,
     /// Ensures that the configs folder exists to start placing save sync configurations.
@@ -61,6 +57,11 @@ enum Commands {
     // Performs the bi-directional sync-process for the given key - with a helper UI to resolve sync conflicts.
     UI {
         sync_key: String,
+
+        /// Should be used to specify that the UI is being executed after game execution.
+        /// This currently has no effect on any actual logic (inteded - for simplicity). But it does have some visual changes
+        #[arg(long)]
+        after_game: bool,
     },
 }
 
@@ -80,9 +81,11 @@ fn handle_command(args: LocalGameSyncCli) -> Result<(), String> {
         }
         Commands::InitConfig => commands::init_command(),
         Commands::OpenConfig => commands::open_default_config_file(),
-        Commands::UI { sync_key } => {
-            let sync_config = load_config(&sync_key, args.config.as_deref())?;
-            let _ = ui_loop_main(sync_config); // UI code takes from here - so returns don't matter.
+        Commands::UI {
+            sync_key,
+            after_game,
+        } => {
+            let _ = ui_loop_main(sync_key, after_game, args.config); // UI code takes from here - so returns don't matter.
             Ok(())
         }
         Commands::Files { sync_key } => {
