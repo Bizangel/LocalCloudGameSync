@@ -3,6 +3,30 @@
 
 - TODO
 
+
+## How to use in Windows - Wrapping Steam Games for Sync Cloud
+
+1. Download scripts in `scripts/windows_steam` and get them to a folder you like.
+2. Copy their absolute paths of both scripts.
+3. Done! To add a new game to be synced before and after launch - add to the steam custom launch flags the following:
+
+```bash
+wscript <> "C:\UtilityPrograms\steam_sync_wrapper.bat" testsynckey %command%
+```
+
+Example:
+
+```bash
+wscript "C:\UtilityPrograms\bat_wrapper_shell_hidden.vbs" "C:\UtilityPrograms\steam_sync_wrapper.bat" testsynckey %command%
+```
+
+(If you want to add any custom flags - you can just add them after %command%)
+
+### Note:
+
+The need for 2 scripts instead of one is to hide the ugly batch window using VBscript hacky stuff - which allows to do this.
+This can also be done with modern powershell but it seems to not fully hide the console window for some reason?
+
 # Limitations
 
 - Remote Server is always expected to be a compliant linux machine with bash.
