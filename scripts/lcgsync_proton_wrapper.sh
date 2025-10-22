@@ -60,7 +60,7 @@ fi
 
 # --- Proton Compatibility Data Setup ---
 export STEAM_COMPAT_CLIENT_INSTALL_PATH="$HOME/.local/share/Steam"
-export STEAM_COMPAT_DATA_PATH="$HOME/.steam/steam/steamapps/compatdata/$SHORTCUT_ID/pfx"
+export STEAM_COMPAT_DATA_PATH="$HOME/.steam/steam/steamapps/compatdata/$SHORTCUT_ID"
 
 echo "Using compatdata prefix: $STEAM_COMPAT_DATA_PATH"
 echo "Game key: $GAME_KEY"
