@@ -89,8 +89,7 @@ lcgsync ui testsynckey && %command%; lcgsync ui testsynckey --after-game
 
 That's it - done! The script will launch before and after launching your game.
 
-**⚠ Important You might need to use the absolute path above depending on how you're launching steam.
-To get it working on my Bazzite installation in game mode I needed to use absolute paths**
+**⚠ Important You might need to use the absolute path above depending on how you're launching steam. If it is not working try absolute path first.
 
 ### Optional - Use wrapper script
 
@@ -104,6 +103,34 @@ Then you can just wrap your games in steam launch configs like this:
 ```
 
 **Note: Ensure to use absolute path for wrapper script - or don't - if you somehow got it working without it**
+
+### ⚠ A note on SteamOS / Bazzite "Game Mode"
+
+For no reason I could not get this to work using the above in SteamOS / Bazite under gamemode. It works fine running desktop mode with wayland but then things break on gamemode which goes against the whole point of this project.
+
+What's probably happening: When steam runs a game in the proton shortcut then that means our custom script is also running inside the proton sandbox and this poses a lot of problems.
+Home paths are broken and cannot be referenced and steam creates a nice cozy sandbox which works for the game but not for the script.
+For some reason the script does - seem to run. But it's UI is not displayed and it's just buggy overall.
+
+The best way to go from here is to handle the proton launching ourselves on a custom script.
+
+For this see: `lcgsync_proton_wrapper.sh` get it on your bazzite OS. Update the first few lines with the right absolute paths for your system.
+
+Then you can create a new steam shortcut pointing to the script. And you can use it as usch:
+
+```
+Target Executable: <script path>
+Start In: None
+Launch Options: <sync key> <game exe path to launch with proton>
+```
+
+Example:
+
+```
+Target Executable: /var/home/user/scripts/lcgsync_proton_wrapper.sh
+Start In: None
+Launch Options: star-renegades "/home/user/games/Star Renegades/Star Renegades.exe"
+```
 
 ## How to wrap Steam in Windows - Wrapping Steam Games for Local Cloud Game Sync
 
