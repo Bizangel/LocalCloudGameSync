@@ -75,20 +75,22 @@ Done! You can use this to sync your game saves whenever you want with a nice use
 
 The end-goal is for this to be ran automatically anytime you open your games - so see below in how to run it automatically.
 
-
 # How to Wrap Steam
 
 ## How to wrap Steam in Linux - Wrapping Steam Games for Local Cloud Game Sync
 
 1. Update your game launch command as follows.
 
-```
+```bash
 lcgsync ui testsynckey && %command%; lcgsync ui testsynckey --after-game
 ```
 
 **Note: Update the key accordingly - of course you want each game to have a different key so you will need to update your config accordingly.**
 
 That's it - done! The script will launch before and after launching your game.
+
+**⚠ Important You might need to use the absolute path above depending on how you're launching steam.
+To get it working on my Bazzite installation in game mode I needed to use absolute paths**
 
 ### Optional - Use wrapper script
 
