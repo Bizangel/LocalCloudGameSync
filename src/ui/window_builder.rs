@@ -1,3 +1,4 @@
+use std::env;
 use std::{cell::RefCell, rc::Rc};
 use tao::{
     event_loop::EventLoop,
@@ -27,8 +28,14 @@ where
 {
     // This is some huge boilerplate that I have no idea how half of it works.
     // best reference is: https://github.com/tauri-apps/wry/blob/dev/examples/gtk_multiwebview.rs
+    let fullscreen = match env::var("SteamGamepadUI") {
+        Ok(val) if val == "1" => Some(tao::window::Fullscreen::Borderless(None)),
+        _ => None,
+    };
+
     let window = WindowBuilder::new()
         .with_title(UI_TITLE_NAME)
+        .with_fullscreen(fullscreen)
         .with_inner_size(tao::dpi::LogicalSize::new(
             UI_INITIAL_SIZE_WIDTH_PX,
             UI_INITIAL_SIZE_HEIGHT_PX,
