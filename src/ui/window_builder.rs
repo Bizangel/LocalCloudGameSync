@@ -28,9 +28,11 @@ where
 {
     // This is some huge boilerplate that I have no idea how half of it works.
     // best reference is: https://github.com/tauri-apps/wry/blob/dev/examples/gtk_multiwebview.rs
-    let fullscreen = match env::var("SteamGamepadUI") {
-        Ok(val) if val == "1" => Some(tao::window::Fullscreen::Borderless(None)),
-        _ => None,
+    let steam_big_picture = env::var("SteamGamepadUI").map_or(false, |v| v == "1");
+    let fullscreen = if steam_big_picture {
+        Some(tao::window::Fullscreen::Borderless(None))
+    } else {
+        None
     };
 
     let window = WindowBuilder::new()
@@ -150,6 +152,10 @@ where
     };
 
     let webview = Rc::new(RefCell::new(webview));
+
+    if steam_big_picture {
+        let _ = webview.borrow().zoom(2.0);
+    }
 
     // GTK-specific size allocation handler
     #[cfg(not(any(
